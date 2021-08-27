@@ -6,30 +6,10 @@
 package decks;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
-public class CreateLimitedList {
-    //Read file content into string with - Files.lines(Path path, Charset cs)
-    private static String readLineByLineJava8(String filePath)
-    {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.ISO_8859_1))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        return contentBuilder.toString();
-    }
+public class CreateLimitedCardList {
 
     public static void main(String[] argv) throws IOException {
         argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\", "false" };
@@ -49,7 +29,7 @@ public class CreateLimitedList {
                 String Set = listOfSet[y].getName() + "\\";
                 File folder = new File(baseFolder.getAbsolutePath() + "\\" + Set);
                 String filePath = folder.getAbsolutePath() + "\\_cards.dat";
-                String lines = readLineByLineJava8(filePath);
+                String lines = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
                 while (lines.contains("[card]")) {
                     String findStr = "[card]";
                     int lastIndex = lines.indexOf(findStr);
@@ -89,7 +69,7 @@ public class CreateLimitedList {
             String filePath = listOfDecks[y].getAbsolutePath();
             if(!filePath.contains("deck"))
                 continue;
-            String cards = readLineByLineJava8(filePath);
+            String cards = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
             String listOfCards[] = cards.split("\n");
             for (int i = 0; i < listOfCards.length; i++) {
                 String name = listOfCards[i];
@@ -116,7 +96,7 @@ public class CreateLimitedList {
             String filePath = listOfDecks[y].getAbsolutePath();
             if(!filePath.contains("deck"))
                 continue;
-            String cards = readLineByLineJava8(filePath);
+            String cards = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
             String listOfCards[] = cards.split("\n");
             for (int i = 0; i < listOfCards.length; i++) {
                 String name = listOfCards[i];
@@ -143,7 +123,7 @@ public class CreateLimitedList {
             String filePath = listOfDecks[y].getAbsolutePath();
             if(!filePath.contains("deck"))
                 continue;
-            String cards = readLineByLineJava8(filePath);
+            String cards = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
             String listOfCards[] = cards.split("\n");
             for (int i = 0; i < listOfCards.length; i++) {
                 String name = listOfCards[i];
@@ -170,7 +150,7 @@ public class CreateLimitedList {
             String filePath = listOfDecks[y].getAbsolutePath();
             if(!filePath.contains("deck"))
                 continue;
-            String cards = readLineByLineJava8(filePath);
+            String cards = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
             String listOfCards[] = cards.split("\n");
             for (int i = 0; i < listOfCards.length; i++) {
                 String name = listOfCards[i];
@@ -191,7 +171,10 @@ public class CreateLimitedList {
             }
         }
         File cardlist = new File(outputPath + "LimitedCardList.txt");
+        File primitivelist = new File(outputPath + "database.txt");
+        Map<String,String> fullDatabase = primitives.PrimitiveDatabase.getFullDatabase(basePath);
         FileWriter fw = new FileWriter(cardlist);
+        FileWriter fw2 = new FileWriter(primitivelist);
         String[] lista = new String[restrictedCardMap.size()];
         for (int i = 0; i < (restrictedCardMap.keySet()).toArray().length ; i++){
             if((restrictedCardMap.keySet()).toArray()[i] !=null) {
@@ -206,11 +189,16 @@ public class CreateLimitedList {
         for(int i = 0; i < lista.length; i++){
             if(!lista[i].isEmpty()) {
                 fw.append(lista[i] + "\n");
+                String primitive = fullDatabase.get(lista[i]);
+                if(primitive != null && !primitive.isEmpty())
+                    fw2.append(primitive);
             }
             fw.flush();
+            fw2.flush();
         }
         fw.close();
-        System.out.println("file LimitedCardList.txt has been created in " + outputPath);
+        fw2.close();
+        System.out.println("The files LimitedCardList.txt and database.txt have been created in " + outputPath);
         if(createColl){
             File collection = new File(outputPath + "collection.dat");
             fw = new FileWriter(collection);

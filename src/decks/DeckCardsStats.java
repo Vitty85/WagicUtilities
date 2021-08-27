@@ -6,31 +6,10 @@
 package decks;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
-import java.util.stream.Stream;
 
 public class DeckCardsStats {
-    //Read file content into string with - Files.lines(Path path, Charset cs)
-    private static String readLineByLineJava8(String filePath)
-    {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.ISO_8859_1))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        return contentBuilder.toString();
-    }
 
     public static void main(String[] argv) throws IOException {
         argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\DeckCardsStats.csv", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\User\\player\\deck81.txt" };
@@ -48,28 +27,28 @@ public class DeckCardsStats {
         int numprimitives = 0;
         for (int y = 0; y < listOfPrimitives.length; y++) {
             String filePath = listOfPrimitives[y].getAbsolutePath();
-            String primitives = readLineByLineJava8(filePath);
+            String primitive = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
             String findStr2 = "name=";
             int lastIndex2 = 0;
             while (lastIndex2 != -1) {
-                lastIndex2 = primitives.indexOf(findStr2, lastIndex2);
+                lastIndex2 = primitive.indexOf(findStr2, lastIndex2);
                 if (lastIndex2 != -1) {
                     numprimitives++;
                     lastIndex2 += findStr2.length();
                 }
             }
             for (int i = 0; i < numprimitives; i++) {
-                int a = primitives.indexOf("name=") + "name=".length();
-                int b = primitives.indexOf("\n", a) + "\n".length();
-                if (a < b && primitives.length() > b) {
-                    String name = primitives.substring(a, b - "\n".length()).replace("//", "-");
-                    primitives = primitives.substring(b);
+                int a = primitive.indexOf("name=") + "name=".length();
+                int b = primitive.indexOf("\n", a) + "\n".length();
+                if (a < b && primitive.length() > b) {
+                    String name = primitive.substring(a, b - "\n".length()).replace("//", "-");
+                    primitive = primitive.substring(b);
                     if (!totalCards.containsKey(name))
                         totalCards.put(name, listOfPrimitives[y].getName());
                 }
             }
         }
-        String cards = readLineByLineJava8(inputDeck);
+        String cards = primitives.PrimitiveDatabase.readLineByLineJava8(inputDeck);
         String listOfCards[] = cards.split("\n");
         for (int i = 0; i < listOfCards.length; i++) {
             String name = listOfCards[i];

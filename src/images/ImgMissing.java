@@ -7,33 +7,13 @@ package images;
 
 import com.sun.xml.internal.fastinfoset.util.StringArray;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class ImgMissing {
-    //Read file content into string with - Files.lines(Path path, Charset cs)
-    private static String readLineByLineJava8(String filePath)
-    {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.ISO_8859_1))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        return contentBuilder.toString();
-    }
 
     public static void main(String[] argv) throws IOException {
 
@@ -46,7 +26,7 @@ public class ImgMissing {
                 String Set = listOfSet[y].getName() + "\\";
                 File folder = new File(basePath + Set);
                 String filePath = folder.getAbsolutePath() + "\\_cards.dat";
-                String lines = readLineByLineJava8(filePath);
+                String lines = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
                 while (lines.contains("[card]")) {
                     String findStr = "[card]";
                     int lastIndex = lines.indexOf(findStr);

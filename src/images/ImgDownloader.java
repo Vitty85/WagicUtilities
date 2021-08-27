@@ -14,29 +14,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public class ImgDownloader {
-
-    private static String readLineByLineJava8(String filePath) {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.ISO_8859_1))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        return contentBuilder.toString();
-    }
 
     public static void main(String[] argv) throws IOException {
 
@@ -83,7 +64,7 @@ public class ImgDownloader {
             System.out.println("Downloading images for: " + set);
             File folder = new File(basePath + set + "\\");
             String filePath = folder.getAbsolutePath() + "\\_cards.dat";
-            String lines = readLineByLineJava8(filePath);
+            String lines = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
             int totalcards = 0;
             String findStr = "primitive=";
             int lastIndex = 0;

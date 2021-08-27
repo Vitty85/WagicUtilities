@@ -8,30 +8,11 @@ package primitives;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public class PrimitiveDuplicates {
-    //Read file content into string with - Files.lines(Path path, Charset cs)
-    private static String readLineByLineJava8(String filePath)
-    {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.ISO_8859_1))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        return contentBuilder.toString();
-    }
-
+    
     public static void main(String[] argv) throws IOException {
         File duplicates = new File("C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\duplicates.txt");
         FileWriter fw = new FileWriter(duplicates);
@@ -46,7 +27,7 @@ public class PrimitiveDuplicates {
         for (int y = 0; y < listOfSet.length; y++) {
             if (!listOfSet[y].getName().contains(set)) {
                 String filePath = listOfSet[y].getAbsolutePath();
-                String lines = readLineByLineJava8(filePath);
+                String lines = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
                 while (lines.contains("[card]")) {
                     String findStr = "[card]";
                     int lastIndex = lines.indexOf(findStr);
@@ -76,7 +57,7 @@ public class PrimitiveDuplicates {
         }
         if(idx >= 0 && !set.equals("NOCHECK")) {
             String filePath = listOfSet[idx].getAbsolutePath();
-            String lines = readLineByLineJava8(filePath);
+            String lines = PrimitiveDatabase.readLineByLineJava8(filePath);
             while (lines.contains("[card]")) {
                 String findStr = "[card]";
                 int lastIndex = lines.indexOf(findStr);

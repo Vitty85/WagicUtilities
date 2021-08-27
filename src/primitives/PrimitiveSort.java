@@ -12,30 +12,11 @@ package primitives;
 
 import com.sun.xml.internal.fastinfoset.util.StringArray;
 import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Stream;
 
 public class PrimitiveSort {
-
-    private static String readLineByLineJava8(String filePath) {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), Charset.forName("Cp1252")))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (Exception e)
-        {
-            System.err.println("Error parsing content of file: " + filePath);
-        }
-
-        return contentBuilder.toString();
-    }
     
     public static void main(String[] argv) throws IOException {
 
@@ -48,7 +29,7 @@ public class PrimitiveSort {
         try {        
             File inputfile = new File(argv[0]);
             File outputfile = new File(argv[1]);
-            String lines = readLineByLineJava8(inputfile.getAbsolutePath());
+            String lines = PrimitiveDatabase.readLineByLineJava8(inputfile.getAbsolutePath());
             StringArray cards = new StringArray();
             StringArray keys = new StringArray();
             Map<String, String> unsortedMap = new HashMap<>();

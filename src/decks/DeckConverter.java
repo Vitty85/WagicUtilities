@@ -6,31 +6,11 @@
 package decks;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
-import java.util.stream.Stream;
 
 public class DeckConverter {
-    //Read file content into string with - Files.lines(Path path, Charset cs)
-    private static String readLineByLineJava8(String filePath)
-    {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.ISO_8859_1))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        return contentBuilder.toString();
-    }
 
     public static void main(String[] argv) throws IOException {
         argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\deck81.txt", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\User\\player\\deck81.txt" };
@@ -55,7 +35,7 @@ public class DeckConverter {
                 String Set = listOfSet[y].getName() + "\\";
                 File folder = new File(baseFolder.getAbsolutePath() + "\\" + Set);
                 String filePath = folder.getAbsolutePath() + "\\_cards.dat";
-                String lines = readLineByLineJava8(filePath);
+                String lines = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
                 while (lines.contains("[card]")) {
                     String findStr = "[card]";
                     int lastIndex = lines.indexOf(findStr);
@@ -87,7 +67,7 @@ public class DeckConverter {
                 }
             }
         }
-        String cards = readLineByLineJava8(inputDeck);
+        String cards = primitives.PrimitiveDatabase.readLineByLineJava8(inputDeck);
         String listOfCards[] = cards.split("\n");
         for (int i = 0; i < listOfCards.length; i++) {
             String name = listOfCards[i];

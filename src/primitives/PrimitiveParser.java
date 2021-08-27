@@ -11,27 +11,8 @@ package primitives;
  */
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 public class PrimitiveParser {
-
-    private static String readLineByLineJava8(String filePath) {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.ISO_8859_1))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (Exception e)
-        {
-            System.err.println("Error parsing content of file: " + filePath);
-        }
-
-        return contentBuilder.toString();
-    }
     
     public static void main(String[] argv) throws IOException {
 
@@ -48,7 +29,7 @@ public class PrimitiveParser {
             File [] listOfPrimitives = primitivesFolder.listFiles();
             for(int i = 0; i < listOfPrimitives.length; i++) {    
                 System.out.println("\r\n" + "Now reading primitive file: " + listOfPrimitives[i]);
-                String lines = readLineByLineJava8(listOfPrimitives[i].getAbsolutePath());
+                String lines = PrimitiveDatabase.readLineByLineJava8(listOfPrimitives[i].getAbsolutePath());
                 while(lines.contains("[card]")) {
                     String findStr = "[card]";
                     int lastIndex = lines.indexOf(findStr);

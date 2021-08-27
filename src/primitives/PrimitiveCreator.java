@@ -9,32 +9,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public class PrimitiveCreator {
-    //Read file content into string with - Files.lines(Path path, Charset cs)
-    private static String readLineByLineJava8(String filePath)
-    {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.ISO_8859_1))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        return contentBuilder.toString();
-    }
 
     public static void main(String[] argv) throws IOException {
 
@@ -47,7 +26,7 @@ public class PrimitiveCreator {
         int numprimitives = 0;
         for (int y = 0; y < listOfPrimitives.length; y++) {
             String filePath = listOfPrimitives[y].getAbsolutePath();
-            String primitives = readLineByLineJava8(filePath);
+            String primitives = PrimitiveDatabase.readLineByLineJava8(filePath);
             String findStr2 = "name=";
             int lastIndex2 = 0;
             while (lastIndex2 != -1) {
@@ -75,9 +54,8 @@ public class PrimitiveCreator {
             if (listOfSet[y].isDirectory() && listOfSet[y].getName().equalsIgnoreCase(set)) {
                 String Set = listOfSet[y].getName() + "\\";
                 File folder = new File(basePath + Set);
-                File[] listOfFiles = folder.listFiles();
                 String filePath = folder.getAbsolutePath() + "\\_cards.dat";
-                String lines = readLineByLineJava8(filePath);
+                String lines = PrimitiveDatabase.readLineByLineJava8(filePath);
                 int totalcards = 0;
                 String findStr = "primitive=";
                 int lastIndex = 0;

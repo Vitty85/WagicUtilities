@@ -14,30 +14,11 @@ import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 
 public class ImgRename {
-    //Read file content into string with - Files.lines(Path path, Charset cs)
-    private static String readLineByLineJava8(String filePath)
-    {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.ISO_8859_1))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return contentBuilder.toString();
-    }
 
     public static void main(String[] argv) {
         if (argv.length != 3) {
@@ -78,7 +59,7 @@ public class ImgRename {
         
         File folder = new File(ImageFolder);
         File[] listOfFiles = folder.listFiles();
-        String lines = readLineByLineJava8(DatFilePath);
+        String lines = primitives.PrimitiveDatabase.readLineByLineJava8(DatFilePath);
         Map<String, String> mappa = new HashMap<>();
 
         while(lines.contains("[card]")) {
