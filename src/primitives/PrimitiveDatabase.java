@@ -57,7 +57,44 @@ public class PrimitiveDatabase {
                                 name = lines.substring(a, lines.indexOf("\n", a)).split("=")[1];
                         }
                         if (name != null)
-                            primitivesMap.put(name, content);
+                            primitivesMap.put(name.toLowerCase(), content);
+                        else
+                            System.err.println("\r\n" + "Error reading: " + content);
+                        lines = lines.substring(endIndex);
+                    }
+                    System.out.println("All primitives contained in " + listOfPrimitives[y].getName() + " have been read");
+                } catch (Exception e) {
+                    System.err.println("Error while reading file: " + listOfPrimitives[y].getName());
+                    System.err.println(e.getMessage());
+                }
+            }
+        }
+        return primitivesMap;
+    }
+    
+    public static Map<String, String> getUnsupportedDatabase(String wagicPath) throws IOException {
+        File baseFolder = new File(wagicPath + "Res\\sets\\primitives\\");
+        File[] listOfPrimitives = baseFolder.listFiles();
+        Map<String, String> primitivesMap = new HashMap<>();
+        for (int y = 0; y < listOfPrimitives.length; y++) {
+            if (listOfPrimitives[y].getName().contains("unsupported.txt")) {
+                try {
+                    System.out.println("Reading file: " + listOfPrimitives[y].getName());
+                    File inputfile = listOfPrimitives[y];
+                    String lines = readLineByLineJava8(inputfile.getAbsolutePath());
+                    while(lines.contains("[card]")) {
+                        String findStr = "[card]";
+                        int lastIndex = lines.indexOf(findStr);
+                        int endIndex = lines.indexOf("[/card]",lastIndex) + 8;
+                        String content = lines.substring(lastIndex, endIndex);
+                        String name = null;
+                        int a = lines.indexOf("name=",lastIndex);
+                        if (a > 0){
+                            if(lines.substring(a, lines.indexOf("\n", a)).split("=").length > 1)
+                                name = lines.substring(a, lines.indexOf("\n", a)).split("=")[1];
+                        }
+                        if (name != null)
+                            primitivesMap.put(name.toLowerCase(), content);
                         else
                             System.err.println("\r\n" + "Error reading: " + content);
                         lines = lines.substring(endIndex);

@@ -12,9 +12,9 @@ import java.util.Map;
 public class CreateLimitedCardList {
 
     public static void main(String[] argv) throws IOException {
-        argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\", "false" };
+        argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\", "true" };
         if (argv.length < 1 || argv.length > 3) {
-            System.err.println("Usage: java -jar CreateLimitedList.jar wagicPath outputPath createCollection");
+            System.err.println("Usage: java -jar CreateLimitedCardList.jar wagicPath outputPath createCollection");
             System.exit(-1);
         }
         String basePath = argv[0];
@@ -54,7 +54,7 @@ public class CreateLimitedCardList {
                     int c = lines.indexOf("[/card]", lastIndex);
                     if (c > 0)
                         lines = lines.substring(c + 8);
-                    if (primitive != null && id != null && !id.equalsIgnoreCase("null") && !primitive.equalsIgnoreCase("X/X")){
+                    if (primitive != null && id != null && !id.equalsIgnoreCase("null")){
                         if (rarity != null && rarity.equalsIgnoreCase("T"))
                             restrictedCardMap.put(primitive, primitive);
                         else
@@ -189,7 +189,7 @@ public class CreateLimitedCardList {
         for(int i = 0; i < lista.length; i++){
             if(!lista[i].isEmpty()) {
                 fw.append(lista[i] + "\n");
-                String primitive = fullDatabase.get(lista[i]);
+                String primitive = fullDatabase.get(lista[i].toLowerCase());
                 if(primitive != null && !primitive.isEmpty())
                     fw2.append(primitive);
             }

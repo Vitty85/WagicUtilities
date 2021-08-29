@@ -15,14 +15,14 @@ import java.util.Map;
 public class CreateCardCollection {
 
     public static void main(String[] argv) throws IOException {
-        String basePath = "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\Res\\sets\\";
-        File baseFolder = new File(basePath);
+        String basePath = "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\";
+        File baseFolder = new File(basePath + "WTH 0.23.1\\Res\\sets\\");
         File[] listOfSet = baseFolder.listFiles();
         Map<String, String> mappa = new HashMap<>();
         for (int y = 0; y < listOfSet.length; y++) {
             if (listOfSet[y].isDirectory() && !listOfSet[y].getName().equalsIgnoreCase("primitives")) {
                 String Set = listOfSet[y].getName() + "\\";
-                File folder = new File(basePath + Set);
+                File folder = new File(basePath + "WTH 0.23.1\\Res\\sets\\" + Set);
                 String filePath = folder.getAbsolutePath() + "\\_cards.dat";
                 String lines = primitives.PrimitiveDatabase.readLineByLineJava8(filePath);
                 while (lines.contains("[card]")) {
