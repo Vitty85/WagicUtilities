@@ -13,7 +13,7 @@ import java.util.Vector;
 public class DeckConverter {
 
     public static void main(String[] argv) throws IOException {
-        argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\deck81.txt", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\User\\player\\deck81.txt" };
+        argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\output.txt", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\input.txt" };
         if (argv.length < 3) {
             System.err.println("Usage: java -jar DeckConverter.jar wagicPath outputDeck inputDeck");
             System.exit(-1);

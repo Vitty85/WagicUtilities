@@ -12,7 +12,7 @@ import java.util.Map;
 public class DeckCardsStats {
 
     public static void main(String[] argv) throws IOException {
-        argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\DeckCardsStats.csv", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\User\\player\\deck81.txt" };
+        argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\DeckCardsStats.csv", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\deck151.txt" };
         if (argv.length < 3) {
             System.err.println("Usage: java -jar DeckCardsStats.jar wagicPath outputCsvFile inputDeck");
             System.exit(-1);
