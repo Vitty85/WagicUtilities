@@ -25,7 +25,7 @@ import org.jsoup.select.Elements;
 public class ScryfallDatFileCreator {
     
      public static void main(String[] argv) {
-        argv = new String[] { "MID", "Innistrad: Midnight Hunt", "2021-09-24", "C:\\Users\\alfieriv\\Desktop\\_cards.dat", "296820", "EXP-ZZK.MID" };
+        argv = new String[] { "CC2", "Commander Collection: Black", "2021-12-31", "C:\\Users\\alfieriv\\Desktop\\_cards.dat", "296820", "COM-T.CC2" };
         if (argv.length != 6) {
             System.err.println("Usage: java -jar ScryDatFileCreator.jar setCode setName setDate outputFilePath startingID orderindex");
             System.exit(-1);

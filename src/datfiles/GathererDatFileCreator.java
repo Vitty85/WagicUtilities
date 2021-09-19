@@ -22,7 +22,7 @@ public class GathererDatFileCreator {
         String baseurl = base + "Details.aspx?multiverseid=";
         String head = "";
 
-        String set = "AFC";
+        String set = "MIC";
         Integer ImgX=672;
         Integer ImgY=936;
         Integer ThumbX=124;
@@ -460,6 +460,34 @@ public class GathererDatFileCreator {
                     "orderindex=COM-R.AFC\n" +
                     "year=2021-07-23\n" +
                     "total=271\n" +
+                    "[/meta]";
+        }
+        else if (set.equalsIgnoreCase("MID")) {
+            baseid = 538227; // 534751 (316) // 538227 (10)
+            fine1 = 10;
+            baseid2 = 0;
+            fine2 = 0;
+            baseid3 = 0;
+            head = "[meta]\n" +
+                    "author=Wagic Team\n" +
+                    "name=Innistrad: Midnight Hunt\n" +
+                    "orderindex=EXP-ZZK.MID\n" +
+                    "year=2021-09-24\n" +
+                    "total=368\n" +
+                    "[/meta]";
+        }
+        else if (set.equalsIgnoreCase("MIC")) {
+            baseid = 540728; // 539338 (111) // 540448 (26) // 540708 (2) // 540728 (2) // 540748 (8)
+            fine1 = 2;
+            baseid2 = 0;
+            fine2 = 0;
+            baseid3 = 0;
+            head = "[meta]\n" +
+                    "author=Wagic Team\n" +
+                    "name=Midnight Hunt Commander\n" +
+                    "orderindex=COM-S.MIC\n" +
+                    "year=2021-09-24\n" +
+                    "total=186\n" +
                     "[/meta]";
         }
 
