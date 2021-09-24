@@ -59,7 +59,11 @@ public class ImgMissing {
                             id.equals("19463") || id.equals("19464") || id.equals("19465") ||
                             id.equals("19476") || id.equals("19477") || id.equals("999901") ||
                             id.equals("47963911") || id.equals("4827131") || id.equals("48966310") ||
-                            id.equals("48966311") || id.equals("999902")))
+                            id.equals("48966311") || id.equals("53941712") || id.equals("53941713") || 
+                            id.equals("53941711") || id.equals("29669413") || id.equals("29669412") || 
+                            id.equals("29669411") || id.equals("53939512") || id.equals("53939511") || 
+                            id.equals("53939513") || id.equals("54047311") || id.equals("54047313") || 
+                            id.equals("54047312") || id.equals("999902")))
                         rarity = "t";
                     if (primitive != null && id != null && !id.equalsIgnoreCase("null") &&
                             !id.equals("53044910") && !id.equals("29643510") && !id.equals("29644410") && !id.equals("29644411"))
