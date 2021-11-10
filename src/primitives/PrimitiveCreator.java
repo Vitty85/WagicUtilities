@@ -17,7 +17,7 @@ public class PrimitiveCreator {
 
     public static void main(String[] argv) throws IOException {
 
-        String set = "Q06";
+        String set = "VOW";
 
         String basePath = "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\Res\\sets\\";
         File baseFolder = new File(basePath + "primitives\\");
