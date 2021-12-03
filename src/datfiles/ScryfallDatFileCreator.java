@@ -25,7 +25,7 @@ import org.jsoup.select.Elements;
 public class ScryfallDatFileCreator {
     
      public static void main(String[] argv) {
-        argv = new String[] { "VOW", "Innistrad: Crimson Vow", "2021-11-19", "C:\\Users\\alfieriv\\Desktop\\_cards.dat", "540828", "EXP-ZZL.VOW" };
+        argv = new String[] { "DBL", "Innistrad Double Feature", "2022-01-28", "C:\\Users\\alfieriv\\Desktop\\_cards.dat", "296840", "PRO-ZG.DBL" };
         if (argv.length != 6) {
             System.err.println("Usage: java -jar ScryDatFileCreator.jar setCode setName setDate outputFilePath startingID orderindex");
             System.exit(-1);
@@ -149,13 +149,19 @@ public class ScryfallDatFileCreator {
                     if(rare.isEmpty()){
                         System.err.println("Error reading rarity info for " + name + "(" + currentId + "), you have to manually fix it later into Dat file!");
                     }
+                    /*if(name.contains(" // ")){
+                        cards.put(currentId, new String[] { name.split(" // ")[0], rare, imageurl });
+                    } else {
+                        cards.put(currentId, new String[] { name, rare, imageurl });
+                    }*/
                     cards.put(currentId, new String[] { name, rare, imageurl });
                 } else {
                     System.err.println("Error Reading card infos from " + linkcard);
                     continue;
                 }
                 if ((text.trim().toLowerCase().contains("create") && text.trim().toLowerCase().contains("creature token")) || 
-                        (text.trim().toLowerCase().contains("put") && text.trim().toLowerCase().contains("token"))) {                  
+                        (text.trim().toLowerCase().contains("put") && text.trim().toLowerCase().contains("token")) ||
+                        (text.trim().toLowerCase().contains("create") && text.trim().toLowerCase().contains("blood token"))) {                  
                     String arrays[] = text.trim().split(" ");
                     String nametoken = "";
                     for (int l = 1; l < arrays.length - 1; l++) {
@@ -165,18 +171,28 @@ public class ScryfallDatFileCreator {
                                 if(l - 2 > 0)
                                     nametoken = arrays[l - 2];
                                 break;
-                            } else if (arrays[l].equalsIgnoreCase("put") && arrays[l + 3].toLowerCase().contains("token")) {
-                                nametoken = arrays[l + 2];
-                                break;
-                            }
+                            } 
+                        } else if ((arrays[l].toLowerCase().contains("put") || arrays[l].toLowerCase().contains("create")) && arrays[l + 3].toLowerCase().contains("token")) {
+                            nametoken = arrays[l + 2];
+                            break;
                         }
                     }
+                    if(nametoken.equals("Zombie") && text.trim().toLowerCase().contains("with decayed"))
+                        nametoken = "Zombie Dec";
                     if(nametoken.isEmpty()){
                         System.err.println("Error reading token info for (-" + currentId + "), you have to manually fix it later into Dat file!");
                         nametoken = "Unknown";
                     }
                     cards.put(-currentId, new String[] { nametoken, "T", "" });
                 }
+                /*if(name.contains(" // ")){
+                    System.out.println("DBL;" + currentId + ";" + imageurl);
+                    System.out.println("else if(id.equals(\"" + currentId + "\"))\n    cardurl = \"" + imageurl + "\";");
+                    currentId++;
+                    System.out.println("DBL;" + currentId + ";" + imageurl.replace("/front/", "/back/"));
+                    System.out.println("else if(id.equals(\"" + currentId + "\"))\n    cardurl = \"" + imageurl.replace("/front/", "/back/") + "\";");
+                    cards.put(currentId, new String[] { name.split(" // ")[1], "T", imageurl.replace("/front/", "/back/") });
+                }*/
                 currentId++;
             }
         } else {
