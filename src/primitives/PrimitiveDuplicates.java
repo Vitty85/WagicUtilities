@@ -18,7 +18,7 @@ public class PrimitiveDuplicates {
         FileWriter fw = new FileWriter(duplicates);
         fw.append("name;file" + "\n");
         fw.flush();
-        String basePath = "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\wagic-wagic-v0.23.1\\projects\\mtg\\bin\\Res\\sets\\primitives\\";
+        String basePath = "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\wagic-wagic-v0.23.1_win\\projects\\mtg\\Res\\sets\\primitives\\";
         File baseFolder = new File(basePath);
         File[] listOfSet = baseFolder.listFiles();
         Map<String, String> mappa = new HashMap<>();
