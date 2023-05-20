@@ -9,7 +9,7 @@ import java.util.Stack;
 public class ParenthesesChecker {
 
     public static void main(String[] args) throws IOException {
-        String folderName = "C:\\Users\\Eduardo_\\Documents\\WagicWindows-0231\\Res\\sets\\primitives"; // replace with the name of your folder
+        String folderName = args[0];
         File folder = new File(folderName);
         for (File file : folder.listFiles()) {
             String fileName = file.getAbsolutePath();
@@ -19,9 +19,6 @@ public class ParenthesesChecker {
             try ( BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
                 String line;
                 int lineNumber = 0;
-                Stack<Integer> parenStack = new Stack<>();
-                Stack<Integer> bracketStack = new Stack<>();
-                Stack<Integer> curlyStack = new Stack<>();
 
                 while ((line = reader.readLine()) != null) {
                     lineNumber++;
@@ -29,6 +26,10 @@ public class ParenthesesChecker {
                         // Ignore this line, it starts with the prefix "text="
                         continue;
                     }
+                    Stack<Integer> parenStack = new Stack<>();
+                    Stack<Integer> bracketStack = new Stack<>();
+                    Stack<Integer> curlyStack = new Stack<>();
+
                     for (int i = 0; i < line.length(); i++) {
                         char c = line.charAt(i);
                         switch (c) {
@@ -76,19 +77,19 @@ public class ParenthesesChecker {
                                 break;
                         }
                     }
-                }
 
-                if (!parenStack.isEmpty()) {
-                    int lastLineNumber = parenStack.pop();
-                    System.out.println("Error: opening parenthesis at line " + lastLineNumber + " has no matching closing parenthesis");
-                }
-                if (!bracketStack.isEmpty()) {
-                    int lastLineNumber = bracketStack.pop();
-                    System.out.println("Error: opening bracket at line " + lastLineNumber + " has no matching closing bracket");
-                }
-                if (!curlyStack.isEmpty()) {
-                    int lastLineNumber = curlyStack.pop();
-                    System.out.println("Error: opening curly bracket at line " + lastLineNumber + " has no matching closing curly bracket");
+                    if (!parenStack.isEmpty()) {
+                        int lastLineNumber = parenStack.pop();
+                        System.out.println("Error: opening parenthesis at line " + lastLineNumber + " has no matching closing parenthesis");
+                    }
+                    if (!bracketStack.isEmpty()) {
+                        int lastLineNumber = bracketStack.pop();
+                        System.out.println("Error: opening bracket at line " + lastLineNumber + " has no matching closing bracket");
+                    }
+                    if (!curlyStack.isEmpty()) {
+                        int lastLineNumber = curlyStack.pop();
+                        System.out.println("Error: opening curly bracket at line " + lastLineNumber + " has no matching closing curly bracket");
+                    }
                 }
             }
         }

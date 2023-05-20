@@ -20,9 +20,10 @@ import org.json.simple.parser.ParseException;
 // @author Eduardo
 public class JsonParserWagic {
 
-    private static final String setCode = "MOM";
+    private static final String setCode = "BRO";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
+    private static Map<String, String> addedId;
     private static String basePath = "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\wagic-wagic-v0.23.1_win\\projects\\mtg\\Res\\sets\\";
     
     public static String getFilePath() {
@@ -80,11 +81,12 @@ public class JsonParserWagic {
     
     public static void main(String[] args) {
 
-        boolean createCardsDat = false;
+        boolean createCardsDat = true;
 
         File directorio = new File(getFilePath());
         directorio.mkdir();
         buildDatabase();
+        addedId = new HashMap<>();
         
         try {
             FileReader reader = new FileReader(getFilePath() + ".json");
@@ -93,7 +95,7 @@ public class JsonParserWagic {
             FileWriter myWriter;
             myWriter = new FileWriter(myObj.getCanonicalPath());
             FileWriter myWriterImages;
-            myWriterImages = new FileWriter("C:\\Users\\alfieriv\\Desktop\\TODO\\image.cvs", true);
+            myWriterImages = new FileWriter("C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode + ".csv", true);
 
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(reader);
@@ -107,34 +109,66 @@ public class JsonParserWagic {
 
             for (Object o : cards) {
                 JSONObject card = (JSONObject) o;
+                JSONArray subtypes = (JSONArray) card.get("subtypes");
 
                 JSONObject identifiers = (JSONObject) card.get("identifiers");
                 String primitiveCardName;
                 String primitiveRarity;
-                String side = "front/";
+                String side;
 
                 primitiveCardName = (String) card.get("faceName") != null ? (String) card.get("faceName") : (String) card.get("name");
                 primitiveRarity = card.get("side") != null && "b".equals(card.get("side").toString()) ? "T" : (String) card.get("rarity");
+                side = card.get("side") != null && "b".equals(card.get("side").toString()) ? "back/" : "front/";
+                String oracleText = "";
+                if (card.get("text") != null) {
+                    oracleText = card.get("text").toString();
+                }
                 if (createCardsDat && identifiers.get("multiverseId") != null) {
-
+                                    // If card is already in database, skip it   
+                    if(addedId.containsKey(identifiers.get("multiverseId").toString()))
+                        continue;
+                    addedId.put(identifiers.get("multiverseId").toString(), primitiveCardName);
+                    if ((oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("creature token")) || 
+                        (oracleText.trim().toLowerCase().contains("put") && oracleText.trim().toLowerCase().contains("token")) ||
+                        (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("blood token"))) {                  
+                        String arrays[] = oracleText.trim().split(" ");
+                        String nametoken = "";
+                        for (int l = 1; l < arrays.length - 1; l++) {
+                            if (arrays[l].equalsIgnoreCase("creature") && arrays[l + 1].toLowerCase().contains("token")) {
+                                nametoken = arrays[l - 1];
+                                if(nametoken.equalsIgnoreCase("artifact")){
+                                    if(l - 2 > 0)
+                                        nametoken = arrays[l - 2];
+                                    break;
+                                } 
+                            } else if ((arrays[l].toLowerCase().contains("put") || arrays[l].toLowerCase().contains("create")) && arrays[l + 3].toLowerCase().contains("token")) {
+                                nametoken = arrays[l + 2];
+                                break;
+                            }
+                        }
+                        if(nametoken.equals("Zombie") && oracleText.trim().toLowerCase().contains("with decayed"))
+                            nametoken = "Zombie Dec";
+                        if(nametoken.isEmpty()){
+                            System.err.println("Error reading token info for (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into Dat file!");
+                            nametoken = "Unknown";
+                        }
+                        //CardDat.generateCardDat(nametoken, "-"+identifiers.get("multiverseId"), "T", myWriter);
+                    }
                     CardDat.generateCardDat(primitiveCardName, identifiers.get("multiverseId"), primitiveRarity, myWriter);
                     CardDat.generateCSV((String) card.get("setCode"), identifiers.get("multiverseId"), (String) identifiers.get("scryfallId"), myWriterImages, side);
-
-                    continue;
                 }
                 // If card is a reprint, skip it                
-                if (card.get("isReprint") != null) {
+                if (card.get("isReprint") != null || "[\"Siege\"]".equals(subtypes.toString())) {
                     continue;
                 }
                 // If card is already in database, skip it   
                 if(mappa2.containsKey(primitiveCardName))
                     continue;
-                
                 mappa2.put(primitiveCardName, primitiveCardName);
                 
                 String nameHeader = "name=" + primitiveCardName;
                 String cardName = primitiveCardName;
-                String oracleText = card.get("text").toString();
+
                 JSONArray keywords = (JSONArray) card.get("keywords");
                 String manaCost = (String) card.get("manaCost");
                 String mana = "mana=" + manaCost;
@@ -143,6 +177,7 @@ public class JsonParserWagic {
                 String power = "";
                 String toughness = "";
                 String loyalty = "";
+                String colorIndicator = "";
 
                 if (card.get("supertypes") != null) {
                     JSONArray supertypes = (JSONArray) card.get("supertypes");
@@ -160,15 +195,12 @@ public class JsonParserWagic {
                     type += typeStr + " ";
                 }
 
-                if (card.get("subtypes") != null) {
-                    JSONArray subtypes = (JSONArray) card.get("subtypes");
-                    if (!subtypes.isEmpty()) {
-                        subtype = "subtype=";
-                        Iterator subtypesIter = subtypes.iterator();
-                        while (subtypesIter.hasNext()) {
-                            String subtypeStr = (String) subtypesIter.next();
-                            subtype += subtypeStr + " ";
-                        }
+                if (!subtypes.isEmpty()) {
+                    subtype = "subtype=";
+                    Iterator subtypesIter = subtypes.iterator();
+                    while (subtypesIter.hasNext()) {
+                        String subtypeStr = (String) subtypesIter.next();
+                        subtype += subtypeStr + " ";
                     }
                 }
 
@@ -179,6 +211,10 @@ public class JsonParserWagic {
 
                 if (card.get("loyalty") != null) {
                     loyalty = "auto=counter(0/0," + card.get("loyalty") + ",loyalty)";
+                }
+
+                if (card.get("colorIndicator") != null) {
+                    colorIndicator = "color=" + card.get("colorIndicator");
                 }
 
                 // CARD TAG
@@ -193,9 +229,21 @@ public class JsonParserWagic {
                     OracleTextToWagic.parseOracleText(keywords, oracleText, cardName, type, subtype, (String) card.get("power"), manaCost);
                     System.out.println("text=" + oracleText.replace("\n", " -- "));
                 }
-                if (!type.contains("Land")) {
+                if (manaCost != null) {
                     mana = mana.replace("/", "");
                     System.out.println(mana);
+                }
+                if (!colorIndicator.isEmpty()) {
+                    colorIndicator = colorIndicator.replace("W", "white");
+                    colorIndicator = colorIndicator.replace("U", "blue");
+                    colorIndicator = colorIndicator.replace("B", "black");
+                    colorIndicator = colorIndicator.replace("R", "red");
+                    colorIndicator = colorIndicator.replace("G", "green");
+                    colorIndicator = colorIndicator.replace("[", "");
+                    colorIndicator = colorIndicator.replace("]", "");
+                    colorIndicator = colorIndicator.replace("\"", "");
+
+                    System.out.println(colorIndicator);
                 }
                 System.out.println(type.trim());
                 if (!subtype.isEmpty()) {

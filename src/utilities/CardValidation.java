@@ -8,7 +8,7 @@ import java.io.IOException;
 public class CardValidation {
 
     public static void main(String[] args) {
-        String folderName = "C:\\Users\\Eduardo_\\Documents\\WagicWindows-0231\\Res\\sets\\primitives";
+        String folderName = args[0];
         File folder = new File(folderName);
 
         for (File file : folder.listFiles()) {

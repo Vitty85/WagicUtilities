@@ -25,7 +25,7 @@ import org.jsoup.select.Elements;
 public class ScryfallDatFileCreator {
     
      public static void main(String[] argv) {
-        argv = new String[] { "CLB", "Commander Legends: Battle for Baldur's Gate", "2022-06-10", "C:\\Users\\alfieriv\\Desktop\\_cards.dat", "0", "ONL-F.CLB" };
+        argv = new String[] { "BRO", "March of the Machine: The Aftermath", "2023-05-12", "C:\\Users\\alfieriv\\Desktop\\_cards.dat", "615811", "ONL-F.MAT" };
         if (argv.length != 6) {
             System.err.println("Usage: java -jar ScryDatFileCreator.jar setCode setName setDate outputFilePath startingID orderindex");
             System.exit(-1);

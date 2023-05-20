@@ -10,7 +10,7 @@ public class SyntaxCheck {
 
     public static void main(String[] args) {
         // Replace the path below with the path to your folder
-        String folderName = "C:\\Users\\Eduardo_\\Documents\\WagicWindows-0231\\Res\\sets\\primitives"; // replace with the name of your folder
+        String folderName = args[0];
         File folder = new File(folderName);
         for (File file : folder.listFiles()) {
 

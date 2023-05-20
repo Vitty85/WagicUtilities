@@ -9,7 +9,7 @@ import java.util.Stack;
 public class FirstBracketsChecker {
 
     public static void main(String[] args) throws IOException {
-        String folderName = "C:\\Users\\Eduardo_\\Documents\\WagicWindows-0231\\Res\\sets\\primitives"; // replace with the name of your folder
+        String folderName = args[0];
         File folder = new File(folderName);
         for (File file : folder.listFiles()) {
             String fileName = file.getAbsolutePath();
