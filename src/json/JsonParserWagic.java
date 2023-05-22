@@ -16,11 +16,14 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 // @author Eduardo
 public class JsonParserWagic {
 
-    private static final String setCode = "BRO";
+    private static final String setCode = "CLB";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -82,7 +85,9 @@ public class JsonParserWagic {
     public static void main(String[] args) {
 
         boolean createCardsDat = true;
-
+        boolean onlyToken = true;
+        boolean withoutToken = false;
+        
         File directorio = new File(getFilePath());
         directorio.mkdir();
         buildDatabase();
@@ -128,7 +133,7 @@ public class JsonParserWagic {
                     if(addedId.containsKey(identifiers.get("multiverseId").toString()))
                         continue;
                     addedId.put(identifiers.get("multiverseId").toString(), primitiveCardName);
-                    if ((oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("creature token")) || 
+                    if (!withoutToken && (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("creature token")) || 
                         (oracleText.trim().toLowerCase().contains("put") && oracleText.trim().toLowerCase().contains("token")) ||
                         (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("blood token"))) {                  
                         String arrays[] = oracleText.trim().split(" ");
@@ -149,13 +154,21 @@ public class JsonParserWagic {
                         if(nametoken.equals("Zombie") && oracleText.trim().toLowerCase().contains("with decayed"))
                             nametoken = "Zombie Dec";
                         if(nametoken.isEmpty()){
-                            System.err.println("Error reading token info for (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into Dat file!");
-                            nametoken = "Unknown";
+                            System.err.println("Error reading token info for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into Dat file!");
+                            nametoken = "Unknown:" + primitiveCardName;
                         }
-                        //CardDat.generateCardDat(nametoken, "-"+identifiers.get("multiverseId"), "T", myWriter);
+                        CardDat.generateCardDat(nametoken, "-"+identifiers.get("multiverseId"), "T", myWriter);
+                        String tokenUrl = findtokenurl(oracleText.trim(), primitiveCardName, (String) identifiers.get("multiverseId"));
+                        if(tokenUrl.isEmpty()){
+                            System.err.println("Error reading token image url for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
+                            tokenUrl = "Unknown:" + primitiveCardName;
+                        }
+                        myWriterImages.write((String) card.get("setCode") + ";" + identifiers.get("multiverseId") + "t;" + tokenUrl + "\n");
                     }
-                    CardDat.generateCardDat(primitiveCardName, identifiers.get("multiverseId"), primitiveRarity, myWriter);
-                    CardDat.generateCSV((String) card.get("setCode"), identifiers.get("multiverseId"), (String) identifiers.get("scryfallId"), myWriterImages, side);
+                    if(!onlyToken){
+                        CardDat.generateCardDat(primitiveCardName, identifiers.get("multiverseId"), primitiveRarity, myWriter);
+                        CardDat.generateCSV((String) card.get("setCode"), identifiers.get("multiverseId"), (String) identifiers.get("scryfallId"), myWriterImages, side);
+                    }
                 }
                 // If card is a reprint, skip it                
                 if (card.get("isReprint") != null || "[\"Siege\"]".equals(subtypes.toString())) {
@@ -265,5 +278,233 @@ public class JsonParserWagic {
         } catch (ParseException | NullPointerException ex) {
             System.out.println("NullPointerException " + ex.getMessage());
         }
+    }
+    
+    public static String findtokenurl(String text, String primitiveName, String id){
+        String CardImageToken = "";
+        String imageurl = "https://scryfall.com/sets/";
+        if (((text.trim().toLowerCase().contains("create") && text.trim().toLowerCase().contains("creature token")) || 
+           (text.trim().toLowerCase().contains("put") && text.trim().toLowerCase().contains("token")))) {
+            boolean tokenfound;
+            String arrays[] = text.trim().split(" ");
+            String nametoken = "";
+            String nametocheck = "";
+            String tokenstats = "";
+            String color = "";
+            String color1 = "";
+            String color2 = "";
+            for (int l = 1; l < arrays.length - 1; l++) {
+                if (arrays[l].equalsIgnoreCase("creature") && arrays[l + 1].toLowerCase().contains("token")) {
+                    nametoken = arrays[l - 1];
+                    if(l - 3 > 0){
+                        tokenstats = arrays[l - 3];
+                        color1 = arrays[l - 2];
+                    }
+                    if(!tokenstats.contains("/")){
+                        if(l - 4 > 0){
+                            tokenstats = arrays[l - 4];
+                            color1 = arrays[l - 3];
+                        }
+                    }
+                    if(!tokenstats.contains("/")){
+                        if(l - 5 > 0){
+                            tokenstats = arrays[l - 5];
+                            color1 = arrays[l - 4];
+                            color2 = arrays[l - 2];
+                        }
+                    }
+                    if(!tokenstats.contains("/")){
+                        if(l - 6 > 0){
+                            tokenstats = arrays[l - 6];
+                            color1 = arrays[l - 5];
+                            color2 = arrays[l - 3];
+                        }
+                    }
+                    if(!tokenstats.contains("/")){
+                        if(l - 7 > 0){
+                            tokenstats = arrays[l - 7];
+                            color1 = arrays[l - 6];
+                            color2 = arrays[l - 4];
+                        }
+                    }
+                    if(nametoken.equalsIgnoreCase("artifact")){
+                        if(l - 2 > 0)
+                            nametoken = arrays[l - 2];
+                        if(l - 4 > 0){
+                            tokenstats = arrays[l - 4];
+                            color1 = arrays[l - 3];
+                        }
+                        if(!tokenstats.contains("/")){
+                            if(l - 5 > 0){
+                                tokenstats = arrays[l - 5];
+                                color1 = arrays[l - 4];
+                            }
+                        }
+                        if(!tokenstats.contains("/")){
+                            if(l - 6 > 0){
+                                tokenstats = arrays[l - 6];
+                                color1 = arrays[l - 5];
+                                color2 = arrays[l - 3];
+                            }
+                        }
+                        if(!tokenstats.contains("/")){
+                            if(l - 7 > 0){
+                                tokenstats = arrays[l - 7];
+                                color1 = arrays[l - 6];
+                                color2 = arrays[l - 4];
+                            }
+                        }
+                        if(!tokenstats.contains("/")){
+                            if(l - 8 > 0) {
+                                tokenstats = arrays[l - 8];
+                                color1 = arrays[l - 7];
+                                color2 = arrays[l - 5];
+                            }
+                        }    
+                    }
+                    if(!tokenstats.contains("/"))
+                        tokenstats = "";
+
+                    if(color1.toLowerCase().contains("white"))
+                        color1 = "W";
+                    else if(color1.toLowerCase().contains("blue"))
+                        color1 = "U";
+                    else if(color1.toLowerCase().contains("black"))
+                        color1 = "B";
+                    else if(color1.toLowerCase().contains("red"))
+                        color1 = "R";
+                    else if(color1.toLowerCase().contains("green"))
+                        color1 = "G";
+                    else if (color1.toLowerCase().contains("colorless"))
+                        color1 = "C";
+                    else 
+                        color1 = "";
+
+                    if(color2.toLowerCase().contains("white"))
+                        color2 = "W";
+                    else if(color1.toLowerCase().contains("blue"))
+                        color2 = "U";
+                    else if(color1.toLowerCase().contains("black"))
+                        color2 = "B";
+                    else if(color1.toLowerCase().contains("red"))
+                        color2 = "R";
+                    else if(color1.toLowerCase().contains("green"))
+                        color2 = "G";
+                    else 
+                        color2 = "";
+
+                    if(!color1.isEmpty()){
+                        color = "(" + color1 + color2 + ")";
+                    }
+                    break;
+                } else if (arrays[l].equalsIgnoreCase("put") && arrays[l + 3].toLowerCase().contains("token")) {
+                    nametoken = arrays[l + 2];
+                    for (int j = 1; j < arrays.length - 1; j++) {
+                        if (arrays[j].contains("/")){
+                            tokenstats = arrays[j];
+                            color = arrays[j+1];
+                        }
+                    }
+                    if(color.toLowerCase().contains("white"))
+                        color = "(W)";
+                    else if(color.toLowerCase().contains("blue"))
+                        color = "(U)";
+                    else if(color.toLowerCase().contains("black"))
+                        color = "(B)";
+                    else if(color.toLowerCase().contains("red"))
+                        color = "(R)";
+                    else if(color.toLowerCase().contains("green"))
+                        color = "(G)";
+                    else if (color.toLowerCase().contains("colorless"))
+                        color = "(C)";
+                    else 
+                        color = "";
+                    break;
+                }
+            }
+            Elements imgstoken;
+            Document doc;
+            try{
+                 doc = Jsoup.connect(imageurl + setCode.toLowerCase()).maxBodySize(0)
+                    .timeout(100000*5)
+                    .get();
+                if (nametoken.isEmpty() || tokenstats.isEmpty()) {
+                    tokenfound = false;
+                    if(nametoken.isEmpty())
+                        nametoken = "Unknown";
+                    nametocheck = primitiveName;
+                    doc = Jsoup.connect(imageurl + setCode.toLowerCase()).get();
+                } else {
+                    try {
+                        tokenfound = true;
+                        nametocheck = nametoken;
+                        doc = findTokenPage(imageurl, nametoken, setCode, tokenstats, color);
+                    } catch(Exception e) {
+                        tokenfound = false;
+                        nametocheck = primitiveName;
+                        doc = Jsoup.connect(imageurl + setCode.toLowerCase()).get();
+                    }
+                }
+            } catch(Exception e){
+                return null;
+            }
+            if(doc == null)
+                return CardImageToken;
+            imgstoken = doc.select("body img");
+            if(imgstoken == null)
+                return CardImageToken;
+
+            for (int p = 0; p < imgstoken.size(); p++) {
+                String titletoken = imgstoken.get(p).attributes().get("alt");
+                if(titletoken.isEmpty())
+                    titletoken = imgstoken.get(p).attributes().get("title");
+                if (titletoken.toLowerCase().contains(nametocheck.toLowerCase())) {
+                    CardImageToken = imgstoken.get(p).attributes().get("src");
+                    if (CardImageToken.isEmpty())
+                        CardImageToken = imgstoken.get(p).attributes().get("data-src");
+                    CardImageToken = CardImageToken.replace("/normal/", "/large/");
+                    if(CardImageToken.indexOf(".jpg") < CardImageToken.length())
+                        CardImageToken = CardImageToken.substring(0, CardImageToken.indexOf(".jpg")+4);
+                    return CardImageToken;
+                }
+            }
+        }
+        return CardImageToken;
+    }
+    
+    public static Document findTokenPage(String imageurl, String name, String set, String tokenstats, String color) throws Exception {
+        Document doc;
+        Elements outlinks;
+        try {
+            if(set.equalsIgnoreCase("DBL"))
+                set = "VOW";
+            doc = Jsoup.connect(imageurl + "t" + set.toLowerCase()).get();
+            if(doc != null) {
+                outlinks = doc.select("body a");
+                if(outlinks != null){
+                    for (int k = 0; k < outlinks.size(); k++){
+                        String linktoken = outlinks.get(k).attributes().get("href");
+                        if(linktoken != null && !linktoken.isEmpty()){
+                            try {
+                                Document tokendoc = Jsoup.connect(linktoken).get();
+                                if(tokendoc == null)
+                                    continue;
+                                Elements stats = tokendoc.select("head meta");
+                                if(stats != null) {
+                                    for (int j = 0; j < stats.size(); j++){
+                                        if(stats.get(j).attributes().get("content").contains(tokenstats.replace("X/X", "*/*")) && 
+                                                stats.get(j).attributes().get("content").toLowerCase().contains(name.toLowerCase())){
+                                            return tokendoc;
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {}
+                        }
+                    }
+                }
+            }
+        } catch (Exception e){}
+        
+        return null;
     }
 }
