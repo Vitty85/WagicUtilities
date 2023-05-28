@@ -23,7 +23,7 @@ import org.jsoup.select.Elements;
 // @author Eduardo
 public class JsonParserWagic {
 
-    private static final String setCode = "CLB";
+    private static final String setCode = "BRC";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -101,7 +101,9 @@ public class JsonParserWagic {
             myWriter = new FileWriter(myObj.getCanonicalPath());
             FileWriter myWriterImages;
             myWriterImages = new FileWriter("C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode + ".csv", true);
-
+            FileWriter myWriterPrimitives;
+            myWriterPrimitives = new FileWriter("C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode + "_TODO.txt", true);
+            
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(reader);
             JSONObject data = (JSONObject) jsonObject.get("data");
@@ -190,6 +192,7 @@ public class JsonParserWagic {
                 String power = "";
                 String toughness = "";
                 String loyalty = "";
+                String defense = "";
                 String colorIndicator = "";
 
                 if (card.get("supertypes") != null) {
@@ -226,25 +229,34 @@ public class JsonParserWagic {
                     loyalty = "auto=counter(0/0," + card.get("loyalty") + ",loyalty)";
                 }
 
+                if (card.get("defense") != null) {
+                    loyalty = "auto=counter(0/0," + card.get("defense") + ",defense)";
+                }
+                
                 if (card.get("colorIndicator") != null) {
                     colorIndicator = "color=" + card.get("colorIndicator");
                 }
 
                 // CARD TAG
-                System.out.println("[card]");
-                System.out.println(nameHeader);
+                myWriterPrimitives.append("[card]\n");
+                myWriterPrimitives.append(nameHeader + "\n");
 
                 if (type.contains("Planeswalker")) {
-                    System.out.println(loyalty);
+                    myWriterPrimitives.append(loyalty + "\n");
+                } else if (type.contains("Battle")) {
+                    myWriterPrimitives.append(defense + "\n");
                 }
                 // ORACLE TEXT
                 if (oracleText != null) {
-                    OracleTextToWagic.parseOracleText(keywords, oracleText, cardName, type, subtype, (String) card.get("power"), manaCost);
-                    System.out.println("text=" + oracleText.replace("\n", " -- "));
+                    OracleTextToWagic.parseOracleText(keywords, oracleText, cardName, type, subtype, (String) card.get("power"), manaCost, myWriterPrimitives);
+                    oracleText = oracleText.replace("\n", " -- ");
+                    oracleText = oracleText.replace("—", "-");
+                    oracleText = oracleText.replace("•", "");
+                    myWriterPrimitives.append("text=" + oracleText + "\n");
                 }
                 if (manaCost != null) {
                     mana = mana.replace("/", "");
-                    System.out.println(mana);
+                    myWriterPrimitives.append(mana + "\n");
                 }
                 if (!colorIndicator.isEmpty()) {
                     colorIndicator = colorIndicator.replace("W", "white");
@@ -256,21 +268,27 @@ public class JsonParserWagic {
                     colorIndicator = colorIndicator.replace("]", "");
                     colorIndicator = colorIndicator.replace("\"", "");
 
-                    System.out.println(colorIndicator);
+                    myWriterPrimitives.append(colorIndicator + "\n");
                 }
-                System.out.println(type.trim());
+                myWriterPrimitives.append(type.trim() + "\n");
                 if (!subtype.isEmpty()) {
-                    System.out.println(subtype.trim());
+                    myWriterPrimitives.append(subtype.trim() + "\n");
                 }
                 if (!power.isEmpty()) {
-                    System.out.println(power);
-                    System.out.println(toughness);
+                    myWriterPrimitives.append(power + "\n");
+                    myWriterPrimitives.append(toughness + "\n");
                 }
-                System.out.println("[/card]\n");
+                myWriterPrimitives.append("[/card]\n");
+                myWriterPrimitives.flush();
             }
             myWriter.close();
             myWriterImages.close();
-
+            myWriterPrimitives.close();
+            String primitives = readLineByLineJava8("C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode + "_TODO.txt");
+            myWriterPrimitives = new FileWriter("C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode + "_TODO.txt", true);
+            myWriterPrimitives.write(primitives);
+            myWriterPrimitives.flush();
+            myWriterPrimitives.close();
         } catch (FileNotFoundException ex) {
             System.out.println("FileNotFoundException " + ex.getMessage());
         } catch (IOException ex) {

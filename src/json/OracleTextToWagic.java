@@ -1,11 +1,13 @@
 package json;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import org.json.simple.JSONArray;
 
 // @author Eduardo
 public class OracleTextToWagic {
 
-    static void parseOracleText(JSONArray keywords, String oracleText, String cardName, String type, String subtype, String power, String manaCost) {
+    static void parseOracleText(JSONArray keywords, String oracleText, String cardName, String type, String subtype, String power, String manaCost, FileWriter myWriter) throws IOException{
         String abilities = "";
         // Remove remainder text        
         oracleText = oracleText.replaceAll("\\(.*?\\)", "").replace("()", "");
@@ -21,35 +23,35 @@ public class OracleTextToWagic {
         }
         // abilities=
         if (abilities.length() > 0) {
-            System.out.println("abilities=" + abilities.trim());
+            myWriter.append("abilities=" + abilities.trim() + "\n");
         }
         // Auto lines
         for (String oracleBit : oracleText.split("\n")) {
             // Permanents, exclude this types
             if (!(type.contains("Instant") || type.contains("Sorcery") || subtype.contains("Aura") || subtype.contains("Equipment"))) {
                 // Evergreen mechanics
-                autoLineExists(AutoLine.Corrupted(oracleBit, cardName));
-                autoLineExists(AutoEffects.DetermineActivatedAbility(oracleBit, cardName, type, subtype));
-                autoLineExists(AutoLine.ManaAbility(oracleBit, subtype));
-                autoLineExists(AutoLine.Cast(oracleBit, cardName));
-                autoLineExists(AutoLine.CombatDamage(oracleBit));
-                autoLineExists(AutoLine.OppCasts(oracleBit));
-                autoLineExists(AutoLine.Weak(oracleBit));
-                autoLineExists(AutoLine.Discarded(oracleBit));
-                autoLineExists(AutoLine.TakeControl(oracleBit));
-                autoLineExists(AutoLine.CantBeBlockedBy(oracleBit));
-                autoLineExists(AutoLine.Lord(oracleBit, type));
-                autoLineExists(AutoLine.Triggers(oracleBit, cardName, type, subtype, power));
-                autoLineExists(AutoLine.processAsLongAs(oracleBit, cardName));
-                autoLineExists(AutoLine.processForEach(oracleBit, type));
-                autoLineExists(AutoLine.CostReduction(oracleBit));
-                autoLineExists(AutoLineGRN.Surveil(oracleBit));
-                autoLineExists(AutoLine.Prowess(oracleBit));
+                autoLineExists(myWriter,AutoLine.Corrupted(oracleBit, cardName));
+                autoLineExists(myWriter,AutoEffects.DetermineActivatedAbility(oracleBit, cardName, type, subtype));
+                autoLineExists(myWriter,AutoLine.ManaAbility(oracleBit, subtype));
+                autoLineExists(myWriter,AutoLine.Cast(oracleBit, cardName));
+                autoLineExists(myWriter,AutoLine.CombatDamage(oracleBit));
+                autoLineExists(myWriter,AutoLine.OppCasts(oracleBit));
+                autoLineExists(myWriter,AutoLine.Weak(oracleBit));
+                autoLineExists(myWriter,AutoLine.Discarded(oracleBit));
+                autoLineExists(myWriter,AutoLine.TakeControl(oracleBit));
+                autoLineExists(myWriter,AutoLine.CantBeBlockedBy(oracleBit));
+                autoLineExists(myWriter,AutoLine.Lord(oracleBit, type));
+                autoLineExists(myWriter,AutoLine.Triggers(oracleBit, cardName, type, subtype, power));
+                autoLineExists(myWriter,AutoLine.processAsLongAs(oracleBit, cardName));
+                autoLineExists(myWriter,AutoLine.processForEach(oracleBit, type));
+                autoLineExists(myWriter,AutoLine.CostReduction(oracleBit));
+                autoLineExists(myWriter,AutoLineGRN.Surveil(oracleBit));
+                autoLineExists(myWriter,AutoLine.Prowess(oracleBit));
 
-                autoLineExists(AutoLineGRN.Proliferate(oracleBit));
+                autoLineExists(myWriter,AutoLineGRN.Proliferate(oracleBit));
 
-                autoLineExists(AutoLine.Unearth(oracleBit));
-                autoLineExists(AutoLine.Prototype(oracleBit));
+                autoLineExists(myWriter,AutoLine.Unearth(oracleBit));
+                autoLineExists(myWriter,AutoLine.Prototype(oracleBit));
 //                autoLineExists(AutoLine.Blitz(oracleBit));
 //                autoLineExists(AutoLineGRN.Kicker(oracleBit, cardName));
 //                autoLineExists(AutoLine.Ninjutsu(oracleBit));
@@ -64,35 +66,35 @@ public class OracleTextToWagic {
             }
             //INSTANT, SORCERY
             if (type.contains("Instant") || type.contains("Sorcery")) {
-                autoLineExists(AutoLine.Corrupted(oracleBit, cardName));
-                autoLineExists(AutoLine.ChooseOneOrBoth(oracleBit));
-                autoLineExists(AutoLine.MyTarget(oracleBit, "InstantOrSorcery", subtype));
-                autoLineExists(AutoEffects.ProcessEffect(oracleBit, type));
-                autoLineExists(AutoLine.ExileDestroyDamage(oracleBit, type));
-                autoLineExists(AutoLine.ReplacerAuraEquipBonus(oracleBit, "InstantOrSorcery"));
-                autoLineExists(AutoLine.Create(oracleBit));
-                autoLineExists(AutoLine.PutA(oracleBit, type));
+                autoLineExists(myWriter,AutoLine.Corrupted(oracleBit, cardName));
+                autoLineExists(myWriter,AutoLine.ChooseOneOrBoth(oracleBit));
+                autoLineExists(myWriter,AutoLine.MyTarget(oracleBit, "InstantOrSorcery", subtype));
+                autoLineExists(myWriter,AutoEffects.ProcessEffect(oracleBit, type));
+                autoLineExists(myWriter,AutoLine.ExileDestroyDamage(oracleBit, type));
+                autoLineExists(myWriter,AutoLine.ReplacerAuraEquipBonus(oracleBit, "InstantOrSorcery"));
+                autoLineExists(myWriter,AutoLine.Create(oracleBit));
+                autoLineExists(myWriter,AutoLine.PutA(oracleBit, type));
 
                 //autoLineExists(AutoLineGRN.Kicker(oracleBit, cardName));
                 //autoLineExists(AutoLineGRN.JumpStart(oracleBit, manaCost));
             }
             // AURA
             if (subtype.contains("Aura")) {
-                autoLineExists(AutoLine.Corrupted(oracleBit, cardName));
-                autoLineExists(AutoLine.MyTarget(oracleBit, subtype, subtype));
+                autoLineExists(myWriter,AutoLine.Corrupted(oracleBit, cardName));
+                autoLineExists(myWriter,AutoLine.MyTarget(oracleBit, subtype, subtype));
                 //autoLineExists(AutoLine.Triggers(oracleBit, cardName, type, subtype, power));
                 String auraEquipBonus = AutoLine.ReplacerAuraEquipBonus(oracleBit, subtype);
                 if (!auraEquipBonus.isEmpty()) {
-                    autoLineExists(auraEquipBonus);
+                    autoLineExists(myWriter,auraEquipBonus);
                 }
             }
             // EQUIPMENT
             if (subtype.contains("Equipment")) {
                 //autoLineExists(AutoLine.Triggers(oracleBit, cardName, type, subtype, power));
-                autoLineExists(AutoLine.AuraEquipBonus(oracleBit, "Equipment"));
-                autoLineExists(AutoLine.ForMirrodin(oracleBit, "Equipment"));
+                autoLineExists(myWriter,AutoLine.AuraEquipBonus(oracleBit, "Equipment"));
+                autoLineExists(myWriter,AutoLine.ForMirrodin(oracleBit, "Equipment"));
                 if (oracleBit.contains("Equip ")) {
-                    autoLineExists(AutoLine.EquipCost(oracleBit));
+                    autoLineExists(myWriter,AutoLine.EquipCost(oracleBit));
                 }
             }
             // SAGA
@@ -102,14 +104,16 @@ public class OracleTextToWagic {
         }
     }
 
-    static void autoLineExists(String outcome, boolean... needAuto) {
+    static void autoLineExists(FileWriter myWriter, String outcome, boolean... needAuto) throws IOException{
         if (outcome.length() > 0) {
-            outcome += "\n";
             if (needAuto.length > 0) {
                 outcome = "auto=" + outcome;
             }
+            outcome = outcome.replace("\n", " -- ");
+            outcome = outcome.replace("—", "-");
+            outcome = outcome.replace("•", "");
+            outcome += "\n";
+            myWriter.append(outcome);
         }
-
-        System.out.print(outcome);
     }
 }
