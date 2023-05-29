@@ -23,7 +23,7 @@ import org.jsoup.select.Elements;
 // @author Eduardo
 public class JsonParserWagic {
 
-    private static final String setCode = "BRC";
+    private static final String setCode = "BRO";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -140,6 +140,7 @@ public class JsonParserWagic {
                         (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("blood token"))) {                  
                         String arrays[] = oracleText.trim().split(" ");
                         String nametoken = "";
+                        String tokenUrl = "";
                         for (int l = 1; l < arrays.length - 1; l++) {
                             if (arrays[l].equalsIgnoreCase("creature") && arrays[l + 1].toLowerCase().contains("token")) {
                                 nametoken = arrays[l - 1];
@@ -155,16 +156,20 @@ public class JsonParserWagic {
                         }
                         if(nametoken.equals("Zombie") && oracleText.trim().toLowerCase().contains("with decayed"))
                             nametoken = "Zombie Dec";
+                        if(nametoken.isEmpty() && oracleText.trim().toLowerCase().contains("powerstone token"))
+                            nametoken = "Powerstone";
                         if(nametoken.isEmpty()){
                             System.err.println("Error reading token info for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into Dat file!");
                             nametoken = "Unknown:" + primitiveCardName;
+                            tokenUrl = "Unknown:" + primitiveCardName;
+                        } else {
+                            tokenUrl = findtokenurl(oracleText.trim(), primitiveCardName, (String) identifiers.get("multiverseId"));
+                            if(tokenUrl.isEmpty()){
+                                System.err.println("Error reading token image url for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
+                                tokenUrl = "Unknown:" + primitiveCardName;
+                            }
                         }
                         CardDat.generateCardDat(nametoken, "-"+identifiers.get("multiverseId"), "T", myWriter);
-                        String tokenUrl = findtokenurl(oracleText.trim(), primitiveCardName, (String) identifiers.get("multiverseId"));
-                        if(tokenUrl.isEmpty()){
-                            System.err.println("Error reading token image url for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
-                            tokenUrl = "Unknown:" + primitiveCardName;
-                        }
                         myWriterImages.write((String) card.get("setCode") + ";" + identifiers.get("multiverseId") + "t;" + tokenUrl + "\n");
                     }
                     if(!onlyToken){
@@ -439,6 +444,12 @@ public class JsonParserWagic {
                         color = "";
                     break;
                 }
+                else if (arrays[l + 1].toLowerCase().equalsIgnoreCase("token") || arrays[l + 1].toLowerCase().equalsIgnoreCase("token.")) {
+                    nametoken = arrays[l];
+                    tokenstats = "";
+                    color = "";
+                    break;
+                }
             }
             Elements imgstoken;
             Document doc;
@@ -446,12 +457,9 @@ public class JsonParserWagic {
                  doc = Jsoup.connect(imageurl + setCode.toLowerCase()).maxBodySize(0)
                     .timeout(100000*5)
                     .get();
-                if (nametoken.isEmpty() || tokenstats.isEmpty()) {
+                if (nametoken.isEmpty()) {
                     tokenfound = false;
-                    if(nametoken.isEmpty())
-                        nametoken = "Unknown";
-                    nametocheck = primitiveName;
-                    doc = Jsoup.connect(imageurl + setCode.toLowerCase()).get();
+                    return CardImageToken;
                 } else {
                     try {
                         tokenfound = true;
@@ -459,19 +467,19 @@ public class JsonParserWagic {
                         doc = findTokenPage(imageurl, nametoken, setCode, tokenstats, color);
                     } catch(Exception e) {
                         tokenfound = false;
-                        nametocheck = primitiveName;
-                        doc = Jsoup.connect(imageurl + setCode.toLowerCase()).get();
+                        return CardImageToken;
                     }
                 }
             } catch(Exception e){
-                return null;
+                return CardImageToken;
             }
             if(doc == null)
                 return CardImageToken;
             imgstoken = doc.select("body img");
             if(imgstoken == null)
                 return CardImageToken;
-
+            if(tokenstats.isEmpty() && color.isEmpty())
+                System.out.println("Warning reading token image url for " + nametoken + " (-" + id + ")" + " created by " + primitiveName + ", maybe you have to manually fix it later into CSV file!");
             for (int p = 0; p < imgstoken.size(); p++) {
                 String titletoken = imgstoken.get(p).attributes().get("alt");
                 if(titletoken.isEmpty())
