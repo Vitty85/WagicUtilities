@@ -23,7 +23,7 @@ import org.jsoup.select.Elements;
 // @author Eduardo
 public class JsonParserWagic {
 
-    private static final String setCode = "NEO";
+    private static final String setCode = "ONC";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -178,9 +178,10 @@ public class JsonParserWagic {
                     }
                 }
                 // If card is a reprint, skip it                
-                if (card.get("isReprint") != null || "[\"Siege\"]".equals(subtypes.toString())) {
+                if (card.get("isReprint") != null) {
                     continue;
                 }
+
                 // If card is already in database, skip it   
                 if(mappa2.containsKey(primitiveCardName))
                     continue;
@@ -290,6 +291,8 @@ public class JsonParserWagic {
             myWriterImages.close();
             myWriterPrimitives.close();
             String primitives = readLineByLineJava8("C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode + "_TODO.txt");
+            File f = new File("C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode + "_TODO.txt");
+            f.delete();
             myWriterPrimitives = new FileWriter("C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode + "_TODO.txt", true);
             myWriterPrimitives.write(primitives);
             myWriterPrimitives.flush();
