@@ -109,7 +109,6 @@ public class OracleTextToWagic {
             if (needAuto.length > 0) {
                 outcome = "auto=" + outcome;
             }
-            outcome = outcome.replace("\n", " -- ");
             outcome = outcome.replace("—", "-");
             outcome = outcome.replace("•", "");
             outcome += "\n";
