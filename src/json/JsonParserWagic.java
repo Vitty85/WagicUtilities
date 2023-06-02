@@ -23,7 +23,7 @@ import org.jsoup.select.Elements;
 // @author Eduardo
 public class JsonParserWagic {
 
-    private static final String setCode = "ONC";
+    private static final String setCode = "NEC";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -113,7 +113,10 @@ public class JsonParserWagic {
             if (createCardsDat) {
                 Metadata.printMetadata(data.get("name"), data.get("releaseDate"), data.get("totalSetSize"), myWriter);
             }
-
+            
+            // Adding unsupported grade to primitive file.
+            myWriterPrimitives.append("grade=unsupported\n");
+                    
             for (Object o : cards) {
                 JSONObject card = (JSONObject) o;
                 JSONArray subtypes = (JSONArray) card.get("subtypes");
@@ -135,7 +138,7 @@ public class JsonParserWagic {
                     if(addedId.containsKey(identifiers.get("multiverseId").toString()))
                         continue;
                     addedId.put(identifiers.get("multiverseId").toString(), primitiveCardName);
-                    if (!withoutToken && (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("creature token")) || 
+                    if (!withoutToken && !oracleText.trim().toLowerCase().contains("nontoken") && (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("creature token")) || 
                         (oracleText.trim().toLowerCase().contains("put") && oracleText.trim().toLowerCase().contains("token")) ||
                         (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("blood token"))) {                  
                         String arrays[] = oracleText.trim().split(" ");
