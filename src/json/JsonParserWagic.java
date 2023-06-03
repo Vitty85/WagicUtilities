@@ -28,7 +28,7 @@ import org.jsoup.select.Elements;
 // @author Eduardo
 public class JsonParserWagic {
 
-    private static final String setCode = "NEO";
+    private static final String setCode = "NEC";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -145,13 +145,16 @@ public class JsonParserWagic {
                     
                     JSONObject cardJson = findCardJsonById(identifiers.get("multiverseId").toString());
                     if(!withoutToken){
+                        boolean canCreateToken = !oracleText.trim().toLowerCase().contains("nontoken") && 
+                                ((oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("creature token")) || 
+                                  (oracleText.trim().toLowerCase().contains("put") && oracleText.trim().toLowerCase().contains("token")));
                         String nametoken = findTokenName(cardJson);
-                        if(nametoken == null){
+                        if(canCreateToken && (nametoken == null || nametoken.isEmpty())){
                             System.err.println("Error reading token info for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
                             nametoken = "Unknown:" + primitiveCardName;
                         }
-                        String tokenUrl = findTokenImageUrl(cardJson, "large");
-                        if(tokenUrl == null){
+                        String tokenUrl = findTokenImageUrl(cardJson, "large");                    
+                        if(canCreateToken && (tokenUrl == null || tokenUrl.isEmpty())){
                             System.err.println("Error reading token image url for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
                             tokenUrl = "Unknown:" + primitiveCardName;
                         }
