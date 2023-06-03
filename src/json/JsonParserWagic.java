@@ -1,11 +1,19 @@
 package json;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Iterator;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -18,12 +26,13 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 // @author Eduardo
 public class JsonParserWagic {
 
-    private static final String setCode = "NEC";
+    private static final String setCode = "NEO";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -85,7 +94,7 @@ public class JsonParserWagic {
     public static void main(String[] args) {
 
         boolean createCardsDat = true;
-        boolean onlyToken = true;
+        boolean onlyToken = false;
         boolean withoutToken = false;
         
         File directorio = new File(getFilePath());
@@ -127,58 +136,41 @@ public class JsonParserWagic {
                 String side;
 
                 primitiveCardName = (String) card.get("faceName") != null ? (String) card.get("faceName") : (String) card.get("name");
-                primitiveRarity = card.get("side") != null && "b".equals(card.get("side").toString()) ? "T" : (String) card.get("rarity");
+                primitiveRarity = card.get("side") != null && "b".equals(card.get("side")) ? "T" : (String) card.get("rarity");
                 side = card.get("side") != null && "b".equals(card.get("side").toString()) ? "back/" : "front/";
                 String oracleText = "";
                 if (card.get("text") != null) {
                     oracleText = card.get("text").toString();
                 }
                 if (createCardsDat && identifiers.get("multiverseId") != null) {
-                                    // If card is already in database, skip it   
+                    // If card is already in database, skip it   
                     if(addedId.containsKey(identifiers.get("multiverseId").toString()))
                         continue;
                     addedId.put(identifiers.get("multiverseId").toString(), primitiveCardName);
-                    if (!withoutToken && !oracleText.trim().toLowerCase().contains("nontoken") && (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("creature token")) || 
-                        (oracleText.trim().toLowerCase().contains("put") && oracleText.trim().toLowerCase().contains("token")) ||
-                        (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("blood token"))) {                  
-                        String arrays[] = oracleText.trim().split(" ");
-                        String nametoken = "";
-                        String tokenUrl = "";
-                        for (int l = 1; l < arrays.length - 1; l++) {
-                            if (arrays[l].equalsIgnoreCase("creature") && arrays[l + 1].toLowerCase().contains("token")) {
-                                nametoken = arrays[l - 1];
-                                if(nametoken.equalsIgnoreCase("artifact")){
-                                    if(l - 2 > 0)
-                                        nametoken = arrays[l - 2];
-                                    break;
-                                } 
-                            } else if ((arrays[l].toLowerCase().contains("put") || arrays[l].toLowerCase().contains("create")) && arrays[l + 3].toLowerCase().contains("token")) {
-                                nametoken = arrays[l + 2];
-                                break;
-                            }
-                        }
-                        if(nametoken.equals("Zombie") && oracleText.trim().toLowerCase().contains("with decayed"))
-                            nametoken = "Zombie Dec";
-                        if(nametoken.isEmpty() && oracleText.trim().toLowerCase().contains("powerstone token"))
-                            nametoken = "Powerstone";
-                        if(nametoken.isEmpty()){
-                            System.err.println("Error reading token info for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into Dat file!");
-                            nametoken = "Unknown:" + primitiveCardName;
-                            tokenUrl = "Unknown:" + primitiveCardName;
-                        } else {
-                            tokenUrl = findtokenurl(oracleText.trim(), primitiveCardName, (String) identifiers.get("multiverseId"));
-                            if(tokenUrl.isEmpty()){
-                                System.err.println("Error reading token image url for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
-                                tokenUrl = "Unknown:" + primitiveCardName;
-                            }
-                        }
-                        CardDat.generateCardDat(nametoken, "-"+identifiers.get("multiverseId"), "T", myWriter);
+                    
+                    JSONObject cardJson = findCardJsonById(identifiers.get("multiverseId").toString());
+                    String nametoken = findTokenName(cardJson);
+                    if(nametoken == null){
+                        System.err.println("Error reading token info for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
+                        nametoken = "Unknown:" + primitiveCardName;
+                    }
+                    String tokenUrl = findTokenImageUrl(cardJson, "large");
+                    if(tokenUrl == null){
+                        System.err.println("Error reading token image url for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
+                        tokenUrl = "Unknown:" + primitiveCardName;
+                    }
+                    if(!nametoken.isEmpty() && !tokenUrl.isEmpty()){
+                        CardDat.generateCardDat(nametoken, "-" + identifiers.get("multiverseId"), "T", myWriter);
                         myWriterImages.write((String) card.get("setCode") + ";" + identifiers.get("multiverseId") + "t;" + tokenUrl + "\n");
                     }
                     if(!onlyToken){
                         CardDat.generateCardDat(primitiveCardName, identifiers.get("multiverseId"), primitiveRarity, myWriter);
-                        CardDat.generateCSV((String) card.get("setCode"), identifiers.get("multiverseId"), (String) identifiers.get("scryfallId"), myWriterImages, side);
+                        String imageUrl = findCardImageUrl(cardJson, primitiveCardName, "large");
+                        myWriterImages.write((String) card.get("setCode") + ";" + identifiers.get("multiverseId") + ";" + imageUrl + "\n");
+                        //CardDat.generateCSV((String) card.get("setCode"), identifiers.get("multiverseId"), (String) identifiers.get("scryfallId"), myWriterImages, side);
                     }
+                    myWriter.flush();
+                    myWriterImages.flush();
                 }
                 // If card is a reprint, skip it                
                 if (card.get("isReprint") != null) {
@@ -220,7 +212,7 @@ public class JsonParserWagic {
                     type += typeStr + " ";
                 }
 
-                if (!subtypes.isEmpty()) {
+                if (subtypes.size() > 0) {
                     subtype = "subtype=";
                     Iterator subtypesIter = subtypes.iterator();
                     while (subtypesIter.hasNext()) {
@@ -306,237 +298,150 @@ public class JsonParserWagic {
             System.out.println("IOException " + ex.getMessage());
         } catch (ParseException | NullPointerException ex) {
             System.out.println("NullPointerException " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("Exception " + ex.getMessage());
         }
     }
     
-    public static String findtokenurl(String text, String primitiveName, String id){
-        String CardImageToken = "";
-        String imageurl = "https://scryfall.com/sets/";
-        if (((text.trim().toLowerCase().contains("create") && text.trim().toLowerCase().contains("creature token")) || 
-           (text.trim().toLowerCase().contains("put") && text.trim().toLowerCase().contains("token")))) {
-            boolean tokenfound;
-            String arrays[] = text.trim().split(" ");
-            String nametoken = "";
-            String nametocheck = "";
-            String tokenstats = "";
-            String color = "";
-            String color1 = "";
-            String color2 = "";
-            for (int l = 1; l < arrays.length - 1; l++) {
-                if (arrays[l].equalsIgnoreCase("creature") && arrays[l + 1].toLowerCase().contains("token")) {
-                    nametoken = arrays[l - 1];
-                    if(l - 3 > 0){
-                        tokenstats = arrays[l - 3];
-                        color1 = arrays[l - 2];
-                    }
-                    if(!tokenstats.contains("/")){
-                        if(l - 4 > 0){
-                            tokenstats = arrays[l - 4];
-                            color1 = arrays[l - 3];
-                        }
-                    }
-                    if(!tokenstats.contains("/")){
-                        if(l - 5 > 0){
-                            tokenstats = arrays[l - 5];
-                            color1 = arrays[l - 4];
-                            color2 = arrays[l - 2];
-                        }
-                    }
-                    if(!tokenstats.contains("/")){
-                        if(l - 6 > 0){
-                            tokenstats = arrays[l - 6];
-                            color1 = arrays[l - 5];
-                            color2 = arrays[l - 3];
-                        }
-                    }
-                    if(!tokenstats.contains("/")){
-                        if(l - 7 > 0){
-                            tokenstats = arrays[l - 7];
-                            color1 = arrays[l - 6];
-                            color2 = arrays[l - 4];
-                        }
-                    }
-                    if(nametoken.equalsIgnoreCase("artifact")){
-                        if(l - 2 > 0)
-                            nametoken = arrays[l - 2];
-                        if(l - 4 > 0){
-                            tokenstats = arrays[l - 4];
-                            color1 = arrays[l - 3];
-                        }
-                        if(!tokenstats.contains("/")){
-                            if(l - 5 > 0){
-                                tokenstats = arrays[l - 5];
-                                color1 = arrays[l - 4];
-                            }
-                        }
-                        if(!tokenstats.contains("/")){
-                            if(l - 6 > 0){
-                                tokenstats = arrays[l - 6];
-                                color1 = arrays[l - 5];
-                                color2 = arrays[l - 3];
-                            }
-                        }
-                        if(!tokenstats.contains("/")){
-                            if(l - 7 > 0){
-                                tokenstats = arrays[l - 7];
-                                color1 = arrays[l - 6];
-                                color2 = arrays[l - 4];
-                            }
-                        }
-                        if(!tokenstats.contains("/")){
-                            if(l - 8 > 0) {
-                                tokenstats = arrays[l - 8];
-                                color1 = arrays[l - 7];
-                                color2 = arrays[l - 5];
-                            }
-                        }    
-                    }
-                    if(!tokenstats.contains("/"))
-                        tokenstats = "";
+    public static JSONObject findCardJsonById(String multiverseId) throws Exception{
+        String apiUrl = "https://api.scryfall.com/cards/multiverse/" + multiverseId;
 
-                    if(color1.toLowerCase().contains("white"))
-                        color1 = "W";
-                    else if(color1.toLowerCase().contains("blue"))
-                        color1 = "U";
-                    else if(color1.toLowerCase().contains("black"))
-                        color1 = "B";
-                    else if(color1.toLowerCase().contains("red"))
-                        color1 = "R";
-                    else if(color1.toLowerCase().contains("green"))
-                        color1 = "G";
-                    else if (color1.toLowerCase().contains("colorless"))
-                        color1 = "C";
-                    else 
-                        color1 = "";
+        URL url = new URL(apiUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
 
-                    if(color2.toLowerCase().contains("white"))
-                        color2 = "W";
-                    else if(color1.toLowerCase().contains("blue"))
-                        color2 = "U";
-                    else if(color1.toLowerCase().contains("black"))
-                        color2 = "B";
-                    else if(color1.toLowerCase().contains("red"))
-                        color2 = "R";
-                    else if(color1.toLowerCase().contains("green"))
-                        color2 = "G";
-                    else 
-                        color2 = "";
-
-                    if(!color1.isEmpty()){
-                        color = "(" + color1 + color2 + ")";
-                    }
-                    break;
-                } else if (arrays[l].equalsIgnoreCase("put") && arrays[l + 3].toLowerCase().contains("token")) {
-                    nametoken = arrays[l + 2];
-                    for (int j = 1; j < arrays.length - 1; j++) {
-                        if (arrays[j].contains("/")){
-                            tokenstats = arrays[j];
-                            color = arrays[j+1];
-                        }
-                    }
-                    if(color.toLowerCase().contains("white"))
-                        color = "(W)";
-                    else if(color.toLowerCase().contains("blue"))
-                        color = "(U)";
-                    else if(color.toLowerCase().contains("black"))
-                        color = "(B)";
-                    else if(color.toLowerCase().contains("red"))
-                        color = "(R)";
-                    else if(color.toLowerCase().contains("green"))
-                        color = "(G)";
-                    else if (color.toLowerCase().contains("colorless"))
-                        color = "(C)";
-                    else 
-                        color = "";
-                    break;
-                }
-                else if (arrays[l + 1].toLowerCase().equalsIgnoreCase("token") || arrays[l + 1].toLowerCase().equalsIgnoreCase("token.")) {
-                    nametoken = arrays[l];
-                    tokenstats = "";
-                    color = "";
-                    break;
-                }
-            }
-            Elements imgstoken;
-            Document doc;
-            try{
-                 doc = Jsoup.connect(imageurl + setCode.toLowerCase()).maxBodySize(0)
-                    .timeout(100000*5)
-                    .get();
-                if (nametoken.isEmpty()) {
-                    tokenfound = false;
-                    return CardImageToken;
-                } else {
-                    try {
-                        tokenfound = true;
-                        nametocheck = nametoken;
-                        doc = findTokenPage(imageurl, nametoken, setCode, tokenstats, color);
-                    } catch(Exception e) {
-                        tokenfound = false;
-                        return CardImageToken;
-                    }
-                }
-            } catch(Exception e){
-                return CardImageToken;
-            }
-            if(doc == null)
-                return CardImageToken;
-            imgstoken = doc.select("body img");
-            if(imgstoken == null)
-                return CardImageToken;
-            if(tokenstats.isEmpty() && color.isEmpty())
-                System.out.println("Warning reading token image url for " + nametoken + " (-" + id + ")" + " created by " + primitiveName + ", maybe you have to manually fix it later into CSV file!");
-            for (int p = 0; p < imgstoken.size(); p++) {
-                String titletoken = imgstoken.get(p).attributes().get("alt");
-                if(titletoken.isEmpty())
-                    titletoken = imgstoken.get(p).attributes().get("title");
-                if (titletoken.toLowerCase().contains(nametocheck.toLowerCase())) {
-                    CardImageToken = imgstoken.get(p).attributes().get("src");
-                    if (CardImageToken.isEmpty())
-                        CardImageToken = imgstoken.get(p).attributes().get("data-src");
-                    CardImageToken = CardImageToken.replace("/normal/", "/large/");
-                    if(CardImageToken.indexOf(".jpg") < CardImageToken.length())
-                        CardImageToken = CardImageToken.substring(0, CardImageToken.indexOf(".jpg")+4);
-                    return CardImageToken;
-                }
-            }
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        StringBuilder response = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
         }
-        return CardImageToken;
+        reader.close();
+
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) jsonParser.parse(response.toString());
+        return jsonObject;
     }
     
-    public static Document findTokenPage(String imageurl, String name, String set, String tokenstats, String color) throws Exception {
-        Document doc;
-        Elements outlinks;
+    public static JSONObject findCardJsonByName(String cardName) throws Exception{
+        String apiUrl = "https://api.scryfall.com/cards/named?exact=" + cardName.replace(" ", "+");
+
+        URL url = new URL(apiUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        StringBuilder response = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
+        }
+        reader.close();
+
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) jsonParser.parse(response.toString());
+        return jsonObject;
+    }
+    
+    public static String findCardMultiverseId(JSONObject jsonObject){
+        String multiverseId = "";
+        if (jsonObject.get("multiverse_ids") != null) {
+            multiverseId = (String) ((JSONArray) jsonObject.get("multiverse_ids")).get(0);
+        } else {
+            System.err.println("Multiverse ID not found in the JSON response.");
+        }
+        return multiverseId;
+    }
+    
+    public static String findCardImageUrl(JSONObject jsonObject, String primitiveCardName, String format){
+        Map<String, String> imageUris = new HashMap<>();
+        if (jsonObject.get("image_uris") != null) {
+            JSONObject imageUrisObject = (JSONObject) jsonObject.get("image_uris");
+            if(imageUrisObject != null && jsonObject.get("name").equals(primitiveCardName))
+                imageUris = (HashMap) imageUrisObject;
+        } else if (jsonObject.get("card_faces") != null) {
+            JSONArray faces = (JSONArray) jsonObject.get("card_faces");
+            if(faces != null){
+                for (Object o : faces) {
+                    JSONObject imageUrisObject = (JSONObject) o;
+                    if(imageUrisObject != null && imageUrisObject.get("name").equals(primitiveCardName)){
+                        if (imageUrisObject.get("image_uris") != null) {
+                            imageUrisObject = (JSONObject) imageUrisObject.get("image_uris");
+                            if(imageUrisObject != null)
+                                imageUris = (HashMap) imageUrisObject;
+                        }
+                    }
+                }
+            }
+        } else {
+            System.err.println("This card has no images...");
+            return "";
+        }
+        return imageUris.get(format);
+    }
+    
+    public static String findTokenImageUrl(JSONObject jsonObject, String format){
+        String imageUrl = "";
         try {
-            if(set.equalsIgnoreCase("DBL"))
-                set = "VOW";
-            doc = Jsoup.connect(imageurl + "t" + set.toLowerCase()).get();
-            if(doc != null) {
-                outlinks = doc.select("body a");
-                if(outlinks != null){
-                    for (int k = 0; k < outlinks.size(); k++){
-                        String linktoken = outlinks.get(k).attributes().get("href");
-                        if(linktoken != null && !linktoken.isEmpty()){
-                            try {
-                                Document tokendoc = Jsoup.connect(linktoken).get();
-                                if(tokendoc == null)
-                                    continue;
-                                Elements stats = tokendoc.select("head meta");
-                                if(stats != null) {
-                                    for (int j = 0; j < stats.size(); j++){
-                                        if(stats.get(j).attributes().get("content").contains(tokenstats.replace("X/X", "*/*")) && 
-                                                stats.get(j).attributes().get("content").toLowerCase().contains(name.toLowerCase())){
-                                            return tokendoc;
-                                        }
-                                    }
-                                }
-                            } catch (Exception e) {}
+            Document document = Jsoup.connect((String )jsonObject.get("scryfall_uri")).get();
+            if (document != null) {
+                Element printsTable = document.selectFirst("table.prints-table");
+                if (printsTable != null) {
+                    Element tokenRow = null;
+                    Elements rows = printsTable.select("tr");
+                    for (Element row : rows) {
+                        if (row.text().contains(" Token,") && !row.text().contains("Faces,")) {
+                            tokenRow = row;
                         }
                     }
-                }
-            }
-        } catch (Exception e){}
-        
-        return null;
+                    if (tokenRow != null) {
+                        Element aElement = tokenRow.selectFirst("td > a");
+                        if (aElement != null) {
+                            String tokenName = aElement.text();
+                            tokenName = tokenName.substring(0, tokenName.indexOf(" Token,"));
+                            System.out.println("Token found: " + tokenName);
+                            imageUrl = aElement.attr("data-card-image-front");
+                            if(imageUrl.indexOf(".jpg") < imageUrl.length())
+                                imageUrl = imageUrl.substring(0, imageUrl.indexOf(".jpg")+4);
+                        }
+                    } 
+                } 
+            } 
+        } catch (IOException e) {
+            System.err.println("There was an error while retrieving token image...");
+            return null;
+        }
+        return imageUrl.replace("large", format);
+    }
+    
+    public static String findTokenName(JSONObject jsonObject){
+        String tokenName = "";
+        try {
+            Document document = Jsoup.connect((String) jsonObject.get("scryfall_uri")).get();
+            if (document != null) {
+                Element printsTable = document.selectFirst("table.prints-table");
+                if (printsTable != null) {
+                    Element tokenRow = null;
+                    Elements rows = printsTable.select("tr");
+                    for (Element row : rows) {
+                        if (row.text().contains(" Token,") && !row.text().contains("Faces,")) {
+                            tokenRow = row;
+                        }
+                    }
+                    if (tokenRow != null) {
+                        Element aElement = tokenRow.selectFirst("td > a");
+                        if (aElement != null) {
+                            tokenName = aElement.text();
+                            tokenName = tokenName.substring(0, tokenName.indexOf(" Token,"));
+                            System.out.println("Token found: " + tokenName);
+                        }
+                    } 
+                } 
+            } 
+        } catch (IOException e) {
+            System.err.println("There was an error while retrieving token image...");
+            return null;
+        }
+        return tokenName;
     }
 }
