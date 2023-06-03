@@ -3,7 +3,7 @@ package json;
 import java.util.regex.Pattern;
 import static json.AutoEffects.ProcessEffect;
 
-// @author Eduardo
+// @author vitty85
 public class AutoLine {
 
     //Corrupted

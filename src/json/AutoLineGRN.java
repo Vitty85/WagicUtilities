@@ -1,6 +1,6 @@
 package json;
 
-// @author Eduardo
+// @author vitty85
 public class AutoLineGRN {
 
     // other={convoke} name(Convoke)

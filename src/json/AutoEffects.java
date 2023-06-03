@@ -1,6 +1,6 @@
 package json;
 
-// @author Eduardo
+// @author vitty85
 import java.util.HashMap;
 import java.util.Map;
 

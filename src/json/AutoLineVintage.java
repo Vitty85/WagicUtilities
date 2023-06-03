@@ -1,6 +1,6 @@
 package json;
 
-// @author Eduardo
+// @author vitty85
 public class AutoLineVintage {
 
     protected static String processOracleTextAfflict(String oracleText, String name) {

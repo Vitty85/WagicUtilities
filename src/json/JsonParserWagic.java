@@ -25,10 +25,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-// @author Eduardo
+// @author vitty85
 public class JsonParserWagic {
 
-    private static final String setCode = "NEC";
+    private static final String setCode = "J22";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -90,7 +90,7 @@ public class JsonParserWagic {
     public static void main(String[] args) {
 
         boolean createCardsDat = true;
-        boolean onlyToken = false;
+        boolean onlyToken = true;
         boolean withoutToken = false;
         
         File directorio = new File(getFilePath());

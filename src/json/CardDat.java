@@ -1,6 +1,6 @@
 package json;
 
-// @author Eduardo
+// @author vitty85
 import java.io.FileWriter;
 import java.io.IOException;
 

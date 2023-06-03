@@ -7,7 +7,7 @@ package json;
 
 /**
  *
- * @author alfieriv
+ * @author vitty85
  */
 
 import java.io.*;

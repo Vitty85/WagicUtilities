@@ -2,7 +2,7 @@ package json;
 
 import org.json.simple.JSONArray;
 
-// @author Eduardo
+// @author vitty85
 public class Abilities {
 
     protected static String processKeywordsAbilities(JSONArray keywords, String oracleText) {

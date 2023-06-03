@@ -3,7 +3,7 @@ package utilities;
 import java.io.IOException;
 
 /**
- * @author Eduardo_
+ * @author vitty85
  */
 public class ANewMain {
     public static void main(String[] args) throws IOException {

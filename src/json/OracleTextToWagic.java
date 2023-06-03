@@ -4,7 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import org.json.simple.JSONArray;
 
-// @author Eduardo
+// @author vitty85
 public class OracleTextToWagic {
 
     static void parseOracleText(JSONArray keywords, String oracleText, String cardName, String type, String subtype, String power, String manaCost, FileWriter myWriter) throws IOException{
