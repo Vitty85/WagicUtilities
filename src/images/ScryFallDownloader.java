@@ -9,10 +9,6 @@ package images;
  *
  * @author alfieriv
  */
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -24,20 +20,23 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class ScryFallDownloader {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         String cardName = "Shorikai, Genesis Engine";
         String multiverseId = "553691";
         String imgFormat = "large";
         
         // Recupera le informazioni sulla carta in json mediante le API di ScryFall
-        JsonObject cardJson = findCardJsonById(multiverseId);
-        //JsonObject cardJson = findCardJsonByName(cardName);
+        JSONObject cardJson = findCardJsonById(multiverseId);
+        //JSONObject cardJson = findCardJsonByName(cardName);
         
         // Verifica se la carta ha un multiverse id associato
         if(multiverseId.isEmpty())
@@ -46,7 +45,7 @@ public class ScryFallDownloader {
             multiverseId = cardName;
         
         // Verifica se la carta ha una immagine associata
-        String cardImageURL = findCardImageUrl(cardJson, imgFormat);    
+        String cardImageURL = findCardImageUrl(cardJson, cardName, imgFormat);    
         if(!cardImageURL.isEmpty()){
             URL cardImageURLObj = new URL(cardImageURL);
             String fileName = multiverseId + ".jpg";
@@ -66,7 +65,7 @@ public class ScryFallDownloader {
         }
     }
     
-    public static JsonObject findCardJsonById(String multiverseId) throws IOException{
+    public static JSONObject findCardJsonById(String multiverseId) throws Exception{
         String apiUrl = "https://api.scryfall.com/cards/multiverse/" + multiverseId;
 
         URL url = new URL(apiUrl);
@@ -81,14 +80,12 @@ public class ScryFallDownloader {
         }
         reader.close();
 
-        Gson gson = new Gson();
-        JsonParser parser = new JsonParser();
-        JsonElement jsonElement = parser.parse(response.toString());
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) jsonParser.parse(response.toString());
         return jsonObject;
     }
     
-    public static JsonObject findCardJsonByName(String cardName) throws IOException{
+    public static JSONObject findCardJsonByName(String cardName) throws Exception{
         String apiUrl = "https://api.scryfall.com/cards/named?exact=" + cardName.replace(" ", "+");
 
         URL url = new URL(apiUrl);
@@ -103,45 +100,55 @@ public class ScryFallDownloader {
         }
         reader.close();
 
-        Gson gson = new Gson();
-        JsonParser parser = new JsonParser();
-        JsonElement jsonElement = parser.parse(response.toString());
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) jsonParser.parse(response.toString());
         return jsonObject;
     }
     
-    public static String findCardMultiverseId(JsonObject jsonObject){
+    public static String findCardMultiverseId(JSONObject jsonObject){
         String multiverseId = "";
-        if (jsonObject.has("multiverse_ids")) {
-            multiverseId = jsonObject.getAsJsonArray("multiverse_ids").get(0).getAsString();
+        if (jsonObject.get("multiverse_ids") != null) {
+            multiverseId = (String) ((JSONArray) jsonObject.get("multiverse_ids")).get(0);
         } else {
             System.err.println("Multiverse ID not found in the JSON response.");
         }
         return multiverseId;
     }
     
-    public static String findCardImageUrl(JsonObject jsonObject, String format){
+    public static String findCardImageUrl(JSONObject jsonObject, String primitiveCardName, String format){
         Map<String, String> imageUris = new HashMap<>();
-        if (jsonObject.has("image_uris")) {
-            JsonObject imageUrisObject = jsonObject.getAsJsonObject("image_uris");
-            for (Map.Entry<String, JsonElement> entry : imageUrisObject.entrySet()) {
-                String type = entry.getKey();
-                String imageUrl = entry.getValue().getAsString();
-                if(imageUrl.indexOf(".jpg") < imageUrl.length())
-                    imageUrl = imageUrl.substring(0, imageUrl.indexOf(".jpg")+4);
-                imageUris.put(type, imageUrl);
+        if (jsonObject.get("image_uris") != null) {
+            JSONObject imageUrisObject = (JSONObject) jsonObject.get("image_uris");
+            if(imageUrisObject != null && jsonObject.get("name").equals(primitiveCardName))
+                imageUris = (HashMap) imageUrisObject;
+        } else if (jsonObject.get("card_faces") != null) {
+            JSONArray faces = (JSONArray) jsonObject.get("card_faces");
+            if(faces != null){
+                for (Object o : faces) {
+                    JSONObject imageUrisObject = (JSONObject) o;
+                    if(imageUrisObject != null && imageUrisObject.get("name").equals(primitiveCardName)){
+                        if (imageUrisObject.get("image_uris") != null) {
+                            imageUrisObject = (JSONObject) imageUrisObject.get("image_uris");
+                            if(imageUrisObject != null)
+                                imageUris = (HashMap) imageUrisObject;
+                        }
+                    }
+                }
             }
         } else {
-            System.err.println("This card has no images...");
+            System.err.println("Cannot retrieve image url for card: " + primitiveCardName);
             return "";
         }
-        return imageUris.get(format);
+        String imageUrl = imageUris.get(format);
+        if(imageUrl.indexOf(".jpg") < imageUrl.length())
+            imageUrl = imageUrl.substring(0, imageUrl.indexOf(".jpg")+4);
+        return imageUrl;
     }
     
-    public static String findTokenImageUrl(JsonObject jsonObject, String format){
+    public static String findTokenImageUrl(JSONObject jsonObject, String format){
         String imageUrl = "";
         try {
-            Document document = Jsoup.connect(jsonObject.get("scryfall_uri").getAsString()).get();
+            Document document = Jsoup.connect((String )jsonObject.get("scryfall_uri")).get();
             if (document != null) {
                 Element printsTable = document.selectFirst("table.prints-table");
                 if (printsTable != null) {
@@ -171,11 +178,11 @@ public class ScryFallDownloader {
         }
         return imageUrl.replace("large", format);
     }
-
-    public static String findTokenName(JsonObject jsonObject){
+    
+    public static String findTokenName(JSONObject jsonObject){
         String tokenName = "";
         try {
-            Document document = Jsoup.connect(jsonObject.get("scryfall_uri").getAsString()).get();
+            Document document = Jsoup.connect((String) jsonObject.get("scryfall_uri")).get();
             if (document != null) {
                 Element printsTable = document.selectFirst("table.prints-table");
                 if (printsTable != null) {
@@ -197,7 +204,7 @@ public class ScryFallDownloader {
                 } 
             } 
         } catch (IOException e) {
-            System.err.println("There was an error while retrieving token image...");
+            System.err.println("There was an error while retrieving the token image...");
             return null;
         }
         return tokenName;

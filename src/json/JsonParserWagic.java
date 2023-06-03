@@ -1,9 +1,5 @@
 package json;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -133,11 +129,10 @@ public class JsonParserWagic {
                 JSONObject identifiers = (JSONObject) card.get("identifiers");
                 String primitiveCardName;
                 String primitiveRarity;
-                String side;
 
                 primitiveCardName = (String) card.get("faceName") != null ? (String) card.get("faceName") : (String) card.get("name");
                 primitiveRarity = card.get("side") != null && "b".equals(card.get("side")) ? "T" : (String) card.get("rarity");
-                side = card.get("side") != null && "b".equals(card.get("side").toString()) ? "back/" : "front/";
+                String side = card.get("side") != null && "b".equals(card.get("side").toString()) ? "back/" : "front/";
                 String oracleText = "";
                 if (card.get("text") != null) {
                     oracleText = card.get("text").toString();
@@ -149,25 +144,26 @@ public class JsonParserWagic {
                     addedId.put(identifiers.get("multiverseId").toString(), primitiveCardName);
                     
                     JSONObject cardJson = findCardJsonById(identifiers.get("multiverseId").toString());
-                    String nametoken = findTokenName(cardJson);
-                    if(nametoken == null){
-                        System.err.println("Error reading token info for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
-                        nametoken = "Unknown:" + primitiveCardName;
-                    }
-                    String tokenUrl = findTokenImageUrl(cardJson, "large");
-                    if(tokenUrl == null){
-                        System.err.println("Error reading token image url for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
-                        tokenUrl = "Unknown:" + primitiveCardName;
-                    }
-                    if(!nametoken.isEmpty() && !tokenUrl.isEmpty()){
-                        CardDat.generateCardDat(nametoken, "-" + identifiers.get("multiverseId"), "T", myWriter);
-                        myWriterImages.write((String) card.get("setCode") + ";" + identifiers.get("multiverseId") + "t;" + tokenUrl + "\n");
+                    if(!withoutToken){
+                        String nametoken = findTokenName(cardJson);
+                        if(nametoken == null){
+                            System.err.println("Error reading token info for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
+                            nametoken = "Unknown:" + primitiveCardName;
+                        }
+                        String tokenUrl = findTokenImageUrl(cardJson, "large");
+                        if(tokenUrl == null){
+                            System.err.println("Error reading token image url for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
+                            tokenUrl = "Unknown:" + primitiveCardName;
+                        }
+                        if(!nametoken.isEmpty() && !nametoken.equals("Copy") && !tokenUrl.isEmpty()){
+                            CardDat.generateCardDat(nametoken, "-" + identifiers.get("multiverseId"), "T", myWriter);
+                            myWriterImages.write((String) card.get("setCode") + ";" + identifiers.get("multiverseId") + "t;" + tokenUrl + "\n");
+                        }
                     }
                     if(!onlyToken){
                         CardDat.generateCardDat(primitiveCardName, identifiers.get("multiverseId"), primitiveRarity, myWriter);
                         String imageUrl = findCardImageUrl(cardJson, primitiveCardName, "large");
                         myWriterImages.write((String) card.get("setCode") + ";" + identifiers.get("multiverseId") + ";" + imageUrl + "\n");
-                        //CardDat.generateCSV((String) card.get("setCode"), identifiers.get("multiverseId"), (String) identifiers.get("scryfallId"), myWriterImages, side);
                     }
                     myWriter.flush();
                     myWriterImages.flush();
@@ -374,10 +370,13 @@ public class JsonParserWagic {
                 }
             }
         } else {
-            System.err.println("This card has no images...");
+            System.err.println("Cannot retrieve image url for card: " + primitiveCardName);
             return "";
         }
-        return imageUris.get(format);
+        String imageUrl = imageUris.get(format);
+        if(imageUrl.indexOf(".jpg") < imageUrl.length())
+            imageUrl = imageUrl.substring(0, imageUrl.indexOf(".jpg")+4);
+        return imageUrl;
     }
     
     public static String findTokenImageUrl(JSONObject jsonObject, String format){
@@ -439,7 +438,7 @@ public class JsonParserWagic {
                 } 
             } 
         } catch (IOException e) {
-            System.err.println("There was an error while retrieving token image...");
+            System.err.println("There was an error while retrieving the token image...");
             return null;
         }
         return tokenName;
