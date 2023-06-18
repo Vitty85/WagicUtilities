@@ -14,7 +14,7 @@ import java.util.Vector;
 public class PrimitiveMissing {
 
     public static void main(String[] argv) throws IOException {
-        argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\WTH 0.23.1\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\OUT\\" };
+        argv = new String[] { "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\wagic-wagic-v0.23.1_win\\projects\\mtg\\", "C:\\Program Files (x86)\\Emulatori\\Sony\\PSVita\\Games\\PSP\\Wagic\\OUT\\" };
         if (argv.length < 1 || argv.length > 3) {
             System.err.println("Usage: java -jar FindMissingPrimitives.jar wagicPath outputPath");
             System.exit(-1);

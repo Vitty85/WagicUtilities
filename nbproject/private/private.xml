@@ -5,6 +5,7 @@
         <group>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/json/PrimitiveDatabase.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/json/Abilities.java</file>
+            <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/json/AutoLine.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/decks/DeckConverter.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/datfiles/GathererDatFileCreator.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/primitives/PrimitiveSort.java</file>
@@ -13,11 +14,18 @@
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/json/JsonParserWagic.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/primitives/PrimitiveParser.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/json/CardDat.java</file>
+            <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/utilities/SyntaxCheck.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/datfiles/DeckmasterDatFileCreator.java</file>
+            <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/json/AutoLineVintage.java</file>
+            <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/json/AutoLineGRN.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/primitives/PrimitiveMissing.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/utilities/CardValidation.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/utilities/ANewMain.java</file>
+            <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/utilities/FirstBracketsChecker.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/decks/DeckCardsStats.java</file>
+            <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/utilities/Keywords.java</file>
+            <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/json/AutoEffects.java</file>
+            <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/json/Metadata.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/datfiles/ScryfallDatFileCreator.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/images/ScryFallDownloader.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/images/ImgDownloader.java</file>
@@ -28,6 +36,8 @@
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/primitives/PrimitiveDatabase.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/primitives/PrimitiveDuplicates.java</file>
             <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/images/ImgMissing.java</file>
+            <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/utilities/FileRead.java</file>
+            <file>file:/C:/Users/alfieriv/Documents/NetBeansProjects/WagicUtilities/src/utilities/ParenthesesChecker.java</file>
         </group>
     </open-files>
 </project-private>
