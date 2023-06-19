@@ -28,7 +28,7 @@ import org.jsoup.select.Elements;
 // @author vitty85
 public class JsonParserWagic {
 
-    private static final String setCode = "J22";
+    private static final String setCode = "MOC";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -90,8 +90,8 @@ public class JsonParserWagic {
     public static void main(String[] args) {
 
         boolean createCardsDat = true;
-        boolean onlyToken = true;
-        boolean withoutToken = false;
+        boolean onlyToken = false;
+        boolean withoutToken = true;
         
         File directorio = new File(getFilePath());
         directorio.mkdir();
@@ -230,7 +230,7 @@ public class JsonParserWagic {
                 }
 
                 if (card.get("defense") != null) {
-                    loyalty = "auto=counter(0/0," + card.get("defense") + ",defense)";
+                    defense = "auto=counter(0/0," + card.get("defense") + ",defense)";
                 }
                 
                 if (card.get("colorIndicator") != null) {
@@ -297,6 +297,7 @@ public class JsonParserWagic {
             System.out.println("IOException " + ex.getMessage());
         } catch (ParseException | NullPointerException ex) {
             System.out.println("NullPointerException " + ex.getMessage());
+            ex.printStackTrace();
         } catch (Exception ex) {
             System.out.println("Exception " + ex.getMessage());
         }
@@ -377,6 +378,10 @@ public class JsonParserWagic {
             return "";
         }
         String imageUrl = imageUris.get(format);
+        if(imageUrl == null){
+            System.err.println("Cannot retrieve image url for card: " + primitiveCardName);
+            return "";
+        }
         if(imageUrl.indexOf(".jpg") < imageUrl.length())
             imageUrl = imageUrl.substring(0, imageUrl.indexOf(".jpg")+4);
         return imageUrl;
@@ -403,6 +408,10 @@ public class JsonParserWagic {
                             tokenName = tokenName.substring(0, tokenName.indexOf(" Token,"));
                             System.out.println("Token found: " + tokenName);
                             imageUrl = aElement.attr("data-card-image-front");
+                            if(imageUrl == null){
+                                System.err.println("Cannot retrieve image url for token: " + tokenName);
+                                return null;
+                            }
                             if(imageUrl.indexOf(".jpg") < imageUrl.length())
                                 imageUrl = imageUrl.substring(0, imageUrl.indexOf(".jpg")+4);
                         }
