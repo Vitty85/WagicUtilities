@@ -30,8 +30,8 @@ import org.jsoup.select.Elements;
 
 public class ScryFallDownloader {
     public static void main(String[] args) throws Exception {
-        String cardName = "Shorikai, Genesis Engine";
-        String multiverseId = "553691";
+        String cardName = "Fable of the Mirror-Breaker";
+        String multiverseId = "553026";
         String imgFormat = "large";
         
         // Recupera le informazioni sulla carta in json mediante le API di ScryFall
@@ -45,7 +45,7 @@ public class ScryFallDownloader {
             multiverseId = cardName;
         
         // Verifica se la carta ha una immagine associata
-        String cardImageURL = findCardImageUrl(cardJson, cardName, imgFormat);    
+        String cardImageURL = findCardImageUrl(cardJson, cardName, multiverseId, imgFormat);    
         if(!cardImageURL.isEmpty()){
             URL cardImageURLObj = new URL(cardImageURL);
             String fileName = multiverseId + ".jpg";
@@ -55,7 +55,8 @@ public class ScryFallDownloader {
         }
         
         // Verifica se la carta ha un token associato
-        String tokenImameURL = findTokenImageUrl(cardJson, imgFormat);
+        String tokenName = findTokenName(cardJson, multiverseId, "Copy");
+        String tokenImameURL = findTokenImageUrl(cardJson, multiverseId, imgFormat, "Copy");
         if(!tokenImameURL.isEmpty()){
             URL tokenImageUrlObj = new URL(tokenImameURL);
             String tokenFileName = multiverseId + "t.jpg";
@@ -115,7 +116,7 @@ public class ScryFallDownloader {
         return multiverseId;
     }
     
-    public static String findCardImageUrl(JSONObject jsonObject, String primitiveCardName, String format){
+    public static String findCardImageUrl(JSONObject jsonObject, String primitiveCardName, String multiverseId, String format){
         Map<String, String> imageUris = new HashMap<>();
         if (jsonObject.get("image_uris") != null) {
             JSONObject imageUrisObject = (JSONObject) jsonObject.get("image_uris");
@@ -136,76 +137,93 @@ public class ScryFallDownloader {
                 }
             }
         } else {
-            System.err.println("Cannot retrieve image url for card: " + primitiveCardName);
+            System.err.println("Cannot retrieve image url for card: " + primitiveCardName + " (" + multiverseId + ")");
             return "";
         }
         String imageUrl = imageUris.get(format);
+        if(imageUrl == null){
+            System.err.println("Cannot retrieve image url for card: " + primitiveCardName + " (" + multiverseId + ")");
+            return "";
+        }
         if(imageUrl.indexOf(".jpg") < imageUrl.length())
             imageUrl = imageUrl.substring(0, imageUrl.indexOf(".jpg")+4);
         return imageUrl;
     }
     
-    public static String findTokenImageUrl(JSONObject jsonObject, String format){
+    public static String findTokenImageUrl(JSONObject jsonObject, String multiverseId, String format, String filterName){
         String imageUrl = "";
         try {
             Document document = Jsoup.connect((String )jsonObject.get("scryfall_uri")).get();
             if (document != null) {
                 Element printsTable = document.selectFirst("table.prints-table");
                 if (printsTable != null) {
-                    Element tokenRow = null;
                     Elements rows = printsTable.select("tr");
+                    int howmany = 0;
                     for (Element row : rows) {
                         if (row.text().contains(" Token,") && !row.text().contains("Faces,")) {
-                            tokenRow = row;
-                        }
-                    }
-                    if (tokenRow != null) {
-                        Element aElement = tokenRow.selectFirst("td > a");
-                        if (aElement != null) {
+                            Element aElement = row.selectFirst("td > a");
                             String tokenName = aElement.text();
                             tokenName = tokenName.substring(0, tokenName.indexOf(" Token,"));
-                            System.out.println("Token found: " + tokenName);
-                            imageUrl = aElement.attr("data-card-image-front");
-                            if(imageUrl.indexOf(".jpg") < imageUrl.length())
-                                imageUrl = imageUrl.substring(0, imageUrl.indexOf(".jpg")+4);
+                            if(tokenName.equals(filterName)){
+                                System.out.println("The token " + tokenName + " has been filtered for card: " + (String)jsonObject.get("name") + " (" + multiverseId + ")");
+                            } else {
+                                howmany++;
+                                imageUrl = aElement.attr("data-card-image-front");
+                                if(imageUrl != null){
+                                    if(imageUrl.indexOf(".jpg") < imageUrl.length())
+                                        imageUrl = imageUrl.substring(0, imageUrl.indexOf(".jpg")+4);
+                                }
+                            }
                         }
+                    }
+                    if (howmany > 1) {
+                        System.out.println("Warning: found " + howmany  + " valid image urls for token created by: " + (String)jsonObject.get("name") + " (" + multiverseId + ")");
                     } 
                 } 
             } 
         } catch (IOException e) {
-            System.err.println("There was an error while retrieving token image...");
-            return null;
+            System.err.println("There was an error while retrieving token image for card: " + (String)jsonObject.get("name") + " (" + multiverseId + ")");
+            return "";
+        }
+        if(imageUrl == null){
+            System.err.println("There was an error while retrieving token image for card: " + (String)jsonObject.get("name") + " (" + multiverseId + ")");
+            return "";
         }
         return imageUrl.replace("large", format);
     }
     
-    public static String findTokenName(JSONObject jsonObject){
+    public static String findTokenName(JSONObject jsonObject, String multiverseId, String filterName){
         String tokenName = "";
         try {
             Document document = Jsoup.connect((String) jsonObject.get("scryfall_uri")).get();
             if (document != null) {
                 Element printsTable = document.selectFirst("table.prints-table");
                 if (printsTable != null) {
-                    Element tokenRow = null;
                     Elements rows = printsTable.select("tr");
+                    int howmany = 0;
                     for (Element row : rows) {
                         if (row.text().contains(" Token,") && !row.text().contains("Faces,")) {
-                            tokenRow = row;
+                            Element aElement = row.selectFirst("td > a");
+                            String tok = aElement.text();
+                            if(tok != null) {
+                                tok = tok.substring(0, tok.indexOf(" Token,"));
+                                if (tok.equals(filterName)) {
+                                    System.out.println("The token " + tok + " has been filtered for card: " + (String) jsonObject.get("name") + " (" + multiverseId + ")");
+                                } else {
+                                    howmany++;
+                                    tokenName = tok;
+                                }
+                            }
                         }
                     }
-                    if (tokenRow != null) {
-                        Element aElement = tokenRow.selectFirst("td > a");
-                        if (aElement != null) {
-                            tokenName = aElement.text();
-                            tokenName = tokenName.substring(0, tokenName.indexOf(" Token,"));
-                            System.out.println("Token found: " + tokenName);
-                        }
+                    if (howmany > 1) {
+                        System.out.println("Warning: found " + howmany  + " valid token name created by: " + (String)jsonObject.get("name") + " (" + multiverseId + ")");
                     } 
-                } 
+                }
             } 
         } catch (IOException e) {
-            System.err.println("There was an error while retrieving the token image...");
-            return null;
+            System.err.println("There was an error while retrieving token name for card: " + (String)jsonObject.get("name") + " (" + multiverseId + ")");
+            return "";
         }
         return tokenName;
     }
