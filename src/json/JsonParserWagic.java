@@ -90,8 +90,8 @@ public class JsonParserWagic {
     public static void main(String[] args) {
 
         boolean createCardsDat = true;
-        boolean onlyToken = false;
-        boolean withoutToken = true;
+        boolean onlyToken = true;
+        boolean withoutToken = false;
         
         File directorio = new File(getFilePath());
         directorio.mkdir();
@@ -121,7 +121,6 @@ public class JsonParserWagic {
             
             // Adding unsupported grade to primitive file.
             myWriterPrimitives.append("grade=unsupported\n");
-                    
             for (Object o : cards) {
                 JSONObject card = (JSONObject) o;
                 JSONArray subtypes = (JSONArray) card.get("subtypes");
@@ -133,46 +132,66 @@ public class JsonParserWagic {
                 primitiveCardName = (String) card.get("faceName") != null ? (String) card.get("faceName") : (String) card.get("name");
                 primitiveRarity = card.get("side") != null && "b".equals(card.get("side")) ? "T" : (String) card.get("rarity");
                 String side = card.get("side") != null && "b".equals(card.get("side").toString()) ? "back/" : "front/";
+                String id = (String) identifiers.get("multiverseId");
+                boolean scryId = false;
+                if(((String) card.get("name")).contains("//") && side.equals("front/")){
+                    if(id != null && !onlyToken)
+                        System.out.println("The card " + primitiveCardName + " is the front face of a double card (" + (String) card.get("name") + ") with id: " + id);
+                } else if(((String) card.get("name")).contains("//") && side.equals("back/")){
+                    if((id == null) || addedId.containsKey(id)){
+                        String prevId = (id != null)?id:"null";    
+                        id = (String) identifiers.get("scryfallId");
+                        if(!onlyToken)
+                            System.out.println("The card " + primitiveCardName + " is the backside of a double card (" + (String) card.get("name") + ") with null or duplicated id (" + prevId + "), i will use the scryfallId: " + id + "\n");
+                        scryId = true;
+                    }
+                }
                 String oracleText = "";
                 if (card.get("text") != null) {
                     oracleText = card.get("text").toString();
                 }
-                if (createCardsDat && identifiers.get("multiverseId") != null) {
+                if (createCardsDat && id != null) {
                     // If card is already in database, skip it   
-                    if(addedId.containsKey(identifiers.get("multiverseId").toString()))
+                    if(addedId.containsKey(id))
                         continue;
-                    addedId.put(identifiers.get("multiverseId").toString(), primitiveCardName);
+                    addedId.put(id, primitiveCardName);
                     
-                    JSONObject cardJson = findCardJsonById(identifiers.get("multiverseId").toString());
+                    JSONObject cardJson = findCardJsonById(id, scryId);
                     if(!withoutToken){
                         boolean canCreateToken = !oracleText.trim().toLowerCase().contains("nontoken") && 
-                                ((oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("creature token")) || 
-                                  (oracleText.trim().toLowerCase().contains("put") && oracleText.trim().toLowerCase().contains("token")));
-                        String nametoken = findTokenName(cardJson, identifiers.get("multiverseId").toString(), "");
+                                (oracleText.trim().toLowerCase().contains("investigate") || 
+                                (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("creature token")) || 
+                                (oracleText.trim().toLowerCase().contains("put") && oracleText.trim().toLowerCase().contains("token")));
+                        String nametoken = findTokenName(cardJson, id, "");
                         if(nametoken.equals("Copy")){ 
-                            nametoken = findTokenName(cardJson, identifiers.get("multiverseId").toString(), "Copy");
+                            nametoken = findTokenName(cardJson, id, "Copy");
                             if(nametoken.isEmpty()) 
                                 nametoken = "Copy";
                         }
                         if(canCreateToken && nametoken.isEmpty()){
-                            System.err.println("Error reading token info for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
+                            System.err.println("Error reading token info for " + primitiveCardName + " (-" + id + "), you have to manually fix it later into CSV file!");
                             nametoken = "Unknown:" + primitiveCardName;
                         }
-                        String tokenUrl = findTokenImageUrl(cardJson, identifiers.get("multiverseId").toString(), "large", "Copy");                    
+                        if(!canCreateToken && !nametoken.isEmpty()){
+                            System.out.println("Warning reading token info for " + primitiveCardName + " (-" + id + "), i found the token " + nametoken + " but the card text is ambiguos, you have to manually check later!");
+                        }
+                        String tokenUrl = findTokenImageUrl(cardJson, id, "large", "Copy");                    
                         if(canCreateToken && !nametoken.equals("Copy") && (tokenUrl == null || tokenUrl.isEmpty())){
-                            System.err.println("Error reading token image url for " + primitiveCardName + " (-" + identifiers.get("multiverseId") + "), you have to manually fix it later into CSV file!");
+                            System.err.println("Error reading token image url for " + primitiveCardName + " (-" + id + "), you have to manually fix it later into CSV file!");
                             tokenUrl = "Unknown:" + primitiveCardName;
                         }
                         if(!nametoken.isEmpty() && !nametoken.equals("Copy") && !tokenUrl.isEmpty()){
-                            System.out.println("Writing token " + nametoken + " (" + tokenUrl + ") for " + primitiveCardName + " (" + identifiers.get("multiverseId") + ")");
-                            CardDat.generateCardDat(nametoken, "-" + identifiers.get("multiverseId"), "T", myWriter);
-                            myWriterImages.write((String) card.get("setCode") + ";" + identifiers.get("multiverseId") + "t;" + tokenUrl + "\n");
+                            System.out.println("Writing token " + nametoken + " (" + tokenUrl + ") for " + primitiveCardName + " (" + id + ")");
+                            CardDat.generateCardDat(nametoken, "-" + id, "T", myWriter);
+                            myWriterImages.write((String) card.get("setCode") + ";" + id + "t;" + tokenUrl + "\n");
                         }
                     }
                     if(!onlyToken){
-                        CardDat.generateCardDat(primitiveCardName, identifiers.get("multiverseId"), primitiveRarity, myWriter);
-                        String imageUrl = findCardImageUrl(cardJson, primitiveCardName, identifiers.get("multiverseId").toString(), "large");
-                        myWriterImages.write((String) card.get("setCode") + ";" + identifiers.get("multiverseId") + ";" + imageUrl + "\n");
+                        CardDat.generateCardDat(primitiveCardName, id, primitiveRarity, myWriter);
+                        String imageUrl = findCardImageUrl(cardJson, primitiveCardName, id, "large");
+                        if(side.equals("back/") && imageUrl.contains("front/"))
+                            System.err.println("The card " + primitiveCardName + " could be a backside, but the url cointains front: " + imageUrl + "\n");
+                        myWriterImages.write((String) card.get("setCode") + ";" + id + ";" + imageUrl + "\n");
                     }
                     myWriter.flush();
                     myWriterImages.flush();
@@ -303,15 +322,16 @@ public class JsonParserWagic {
             System.out.println("IOException " + ex.getMessage());
         } catch (ParseException | NullPointerException ex) {
             System.out.println("NullPointerException " + ex.getMessage());
-            ex.printStackTrace();
         } catch (Exception ex) {
             System.out.println("Exception " + ex.getMessage());
         }
     }
     
-    public static JSONObject findCardJsonById(String multiverseId) throws Exception{
-        String apiUrl = "https://api.scryfall.com/cards/multiverse/" + multiverseId;
-
+    public static JSONObject findCardJsonById(String id, boolean scryId) throws Exception{
+        String apiUrl = "https://api.scryfall.com/cards/multiverse/" + id;
+        if(scryId)
+            apiUrl = "https://api.scryfall.com/cards/" + id;
+        
         URL url = new URL(apiUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
