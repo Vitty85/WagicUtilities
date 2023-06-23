@@ -28,7 +28,7 @@ import org.jsoup.select.Elements;
 // @author vitty85
 public class JsonParserWagic {
 
-    private static final String setCode = "NEO";
+    private static final String setCode = "SIR";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -90,8 +90,8 @@ public class JsonParserWagic {
     public static void main(String[] args) {
 
         boolean createCardsDat = true;
-        boolean onlyToken = true;
-        boolean withoutToken = false;
+        boolean onlyToken = false;
+        boolean withoutToken = true;
         
         File directorio = new File(getFilePath());
         directorio.mkdir();
