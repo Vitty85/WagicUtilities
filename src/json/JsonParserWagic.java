@@ -28,7 +28,7 @@ import org.jsoup.select.Elements;
 // @author vitty85
 public class JsonParserWagic {
 
-    private static final String setCode = "SIR";
+    private static final String setCode = "LTC";
     private static String filePath = "C:\\Users\\alfieriv\\Desktop\\TODO\\" + setCode;
     private static Map<String, String> mappa2;
     private static Map<String, String> addedId;
@@ -90,9 +90,10 @@ public class JsonParserWagic {
     public static void main(String[] args) {
 
         boolean createCardsDat = true;
-        boolean onlyToken = true;
+        boolean onlyToken = false;
         boolean withoutToken = false;
-        
+        boolean mtgoId = false;
+                
         File directorio = new File(getFilePath());
         directorio.mkdir();
         buildDatabase();
@@ -133,6 +134,8 @@ public class JsonParserWagic {
                 primitiveRarity = card.get("side") != null && "b".equals(card.get("side")) ? "T" : (String) card.get("rarity");
                 String side = card.get("side") != null && "b".equals(card.get("side").toString()) ? "back/" : "front/";
                 String id = (String) identifiers.get("multiverseId");
+                if(mtgoId)
+                    id = (String) identifiers.get("mtgoId");
                 boolean scryId = false;
                 if(((String) card.get("name")).contains("//") && side.equals("front/")){
                     if(id != null && !onlyToken)
@@ -156,12 +159,18 @@ public class JsonParserWagic {
                         continue;
                     addedId.put(id, primitiveCardName);
                     
-                    JSONObject cardJson = findCardJsonById(id, scryId);
+                    JSONObject cardJson;
+                    try{
+                        cardJson = findCardJsonById(id, scryId, mtgoId);
+                    } catch(Exception e){
+                        System.err.println("Error reading card info for " + primitiveCardName + " (" + id + "), you have to manually fix it later! - " + e.getMessage());
+                        continue;
+                    }
                     if(!withoutToken){
                         boolean canCreateToken = !oracleText.trim().toLowerCase().contains("nontoken") && 
-                                (oracleText.trim().toLowerCase().contains("investigate") || 
-                                (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("creature token")) || 
-                                (oracleText.trim().toLowerCase().contains("put") && oracleText.trim().toLowerCase().contains("token")));
+                            (oracleText.trim().toLowerCase().contains("investigate") || 
+                            (oracleText.trim().toLowerCase().contains("create") && oracleText.trim().toLowerCase().contains("token")) ||
+                            (oracleText.trim().toLowerCase().contains("put") && oracleText.trim().toLowerCase().contains("token")));
                         String nametoken = findTokenName(cardJson, id, "");
                         if(nametoken.equals("Copy")){ 
                             nametoken = findTokenName(cardJson, id, "Copy");
@@ -327,8 +336,12 @@ public class JsonParserWagic {
         }
     }
     
-    public static JSONObject findCardJsonById(String id, boolean scryId) throws Exception{
-        String apiUrl = "https://api.scryfall.com/cards/multiverse/" + id;
+    public static JSONObject findCardJsonById(String id, boolean scryId, boolean mtgoId) throws Exception{
+        String apiUrl = "";
+        if(!mtgoId && !scryId)
+            apiUrl = "https://api.scryfall.com/cards/multiverse/" + id;
+        else if(mtgoId && !scryId)
+            apiUrl = "https://api.scryfall.com/cards/mtgo/" + id;
         if(scryId)
             apiUrl = "https://api.scryfall.com/cards/" + id;
         
